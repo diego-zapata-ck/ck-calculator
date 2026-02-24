@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   ArrowRight,
-  Minus,
-  Plus,
+  ChevronDown,
   CalendarDays,
   Clock,
   CheckCheck,
@@ -17,27 +16,18 @@ import {
   calculateTacticCost,
 } from "../constants";
 
-export default function TacticCard({
+export default function ServiceCard({
   tactic,
   isSelected,
   onToggle,
   onConfigChange,
   currentConfig,
-  allTacticConfigurations,
-  forceCollapse,
-  showCost,
-  showHours,
+  showPrice,
   show,
 }) {
-  const [expanded, setExpanded] = useState(true);
-  const [showSubtasks, setShowSubtasks] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    setExpanded(!forceCollapse);
-    setShowSubtasks(false);
-  }, [forceCollapse]);
-
-  const { hours: displayHours, cost: displayCost } = useMemo(() => {
+  const { cost: displayCost } = useMemo(() => {
     if (!tactic) return { hours: 0, cost: 0 };
     if (Object.keys(currentConfig).length === 0 && !tactic.Variants) {
       return {
@@ -50,8 +40,8 @@ export default function TacticCard({
 
   if (!tactic) return null;
 
-  const allSubtasks = tactic["Sub-tasks"];
   const IconComponent = TACTIC_ICONS[tactic.ID] || ArrowRight;
+  const allSubtasks = tactic["Sub-tasks"];
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -72,86 +62,82 @@ export default function TacticCard({
     });
   };
 
+  const hasConfig =
+    (tactic.Adjustments && tactic.Adjustments.length > 0) ||
+    (tactic.Variants && tactic.Variants.length > 0);
+
   return (
     <div
-      className={`card ${
+      className={`rounded-xl border transition-all duration-200 ${
         isSelected
-          ? "bg-primary-light border-primary-main shadow-md"
-          : "bg-white shadow-sm"
+          ? "bg-primary-light border-primary-main"
+          : "bg-white border-gray-200"
       }`}
     >
-      <div className="flex justify-between items-center mb-4 gap-4">
+      {/* Main row */}
+      <div className="flex items-center justify-between px-5 py-4 gap-4">
         <div className="flex items-center gap-3 flex-grow min-w-0">
-          <IconComponent className="w-6 h-6 text-primary-main flex-shrink-0" />
-          <div className="flex flex-col flex-grow min-w-0">
-            <h3 className="text-xl font-semibold text-gray-900 flex-grow min-w-0 truncate">
-              {tactic.Name}
-            </h3>
-            {tactic.Type !== "Execution" && (
-              <p className="text-lg font-bold text-gray-800 flex-shrink-0">
-                {showHours && (
-                  <span className="text-primary-main mr-4">
-                    {formatHoursToMinutes(displayHours)}
-                  </span>
-                )}
-                {showCost && (
-                  <span className="text-primary-main">
-                    ${formatCurrency(displayCost)}
-                  </span>
-                )}
-              </p>
-            )}
+          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+            <IconComponent className="w-5 h-5 text-primary-main" />
           </div>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-          {tactic.Type !== "Strategy" && (
-            <button
-              onClick={() => onToggle(tactic, currentConfig)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer
-              ${
-                isSelected
-                  ? "bg-secondary-main text-white hover:bg-secondary-dark"
-                  : "bg-primary-main text-white hover:bg-primary-dark"
-              }`}
-            >
-              {isSelected ? "Remove" : "Add"}
-            </button>
-          )}
+          <span className="font-medium text-gray-900 text-base">
+            {tactic.displayName || tactic.Name}
+          </span>
           <button
-            onClick={() =>
-              setExpanded(!expanded)
-            }
-            className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
-            title={expanded ? "Collapse Card" : "Expand Card"}
+            onClick={() => setExpanded(!expanded)}
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {expanded ? (
-              <Minus className="w-5 h-5" />
-            ) : (
-              <Plus className="w-5 h-5" />
-            )}
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                expanded ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-4 flex-shrink-0">
+          {showPrice && (
+            <span className="text-sm font-semibold text-gray-600">
+              +${formatCurrency(displayCost)}
+            </span>
+          )}
+          {/* Toggle switch */}
+          <button
+            onClick={() => onToggle(tactic, currentConfig)}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
+              isSelected ? "bg-primary-main" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                isSelected ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
           </button>
         </div>
       </div>
 
+      {/* Expanded content */}
       {expanded && (
-        <div>
-          <p className="text-sm text-gray-600 mb-3">{tactic.Description}</p>
+        <div className="px-5 pb-5 pt-1 border-t border-gray-100">
+          <p className="text-sm text-gray-500 mb-3">{tactic.Description}</p>
+
           {tactic.Inclusions && (
-            <>
-              <h4 className="text-md font-semibold text-gray-700">
+            <div className="mb-3">
+              <h4 className="text-sm font-semibold text-gray-700 mb-1">
                 Base Inclusions:
               </h4>
-              <ul>
+              <ul className="text-sm text-gray-600">
                 {tactic.Inclusions.map((inclusion, i) => (
                   <li key={i}>{inclusion}</li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
-          {((tactic.Adjustments && tactic.Adjustments.length > 0) ||
-            (tactic.Variants && tactic.Variants.length > 0)) && (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
-              <h4 className="text-md font-semibold text-gray-700">
+
+          {hasConfig && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-gray-700">
                 {tactic.Name === "Strategy"
                   ? "Option:"
                   : "Configurable Options:"}
@@ -169,7 +155,7 @@ export default function TacticCard({
                             /\s/g,
                             ""
                           )}`}
-                          className="text-sm text-gray-700"
+                          className="text-sm text-gray-600"
                         >
                           {adj.Description}
                         </label>
@@ -190,7 +176,7 @@ export default function TacticCard({
                     <>
                       <label
                         htmlFor={`${tactic.ID}-numLeadGenEvents`}
-                        className="text-sm text-gray-700"
+                        className="text-sm text-gray-600"
                       >
                         {adj.Description}
                       </label>
@@ -217,19 +203,18 @@ export default function TacticCard({
                       />
                       <label
                         htmlFor={`${tactic.ID}-${adj.Condition}`}
-                        className="ml-2 text-sm text-gray-800 cursor-pointer"
+                        className="text-sm text-gray-700 cursor-pointer"
                       >
                         {adj.Description}
                       </label>
                     </div>
                   )}
-                  {/* meclabs user journey — uses a special config key */}
                   {tactic.ID === 13 &&
                     adj.Unit === "additional user journey" && (
                       <>
                         <label
                           htmlFor={`${tactic.ID}-numAdditionalUserJourneysMeclabs`}
-                          className="text-sm text-gray-700"
+                          className="text-sm text-gray-600"
                         >
                           {adj.Description}
                         </label>
@@ -250,10 +235,7 @@ export default function TacticCard({
               ))}
 
               {tactic.Variants && tactic.Variants.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-md font-semibold text-gray-700">
-                    {tactic.Type === "Strategy" ? "" : "Select Options:"}
-                  </h4>
+                <div className="mt-3">
                   {tactic.ID === 9 ? (
                     <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2">
                       <div className="flex items-center">
@@ -276,7 +258,7 @@ export default function TacticCard({
                         />
                         <label
                           htmlFor={`variant-${tactic.ID}-6pax`}
-                          className="ml-2 text-sm text-gray-800 cursor-pointer"
+                          className="ml-2 text-sm text-gray-700 cursor-pointer"
                         >
                           6 PAX
                         </label>
@@ -306,7 +288,7 @@ export default function TacticCard({
                             htmlFor={`variant-${
                               tactic.ID
                             }-${variant.Name.replace(/\s/g, "-")}`}
-                            className="ml-2 text-sm text-gray-800 cursor-pointer"
+                            className="ml-2 text-sm text-gray-700 cursor-pointer"
                           >
                             {variant.Name}
                           </label>
@@ -314,7 +296,7 @@ export default function TacticCard({
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
                       {tactic.Variants.map((variant, index) => {
                         let discountRate = 0;
                         let discountAmount = 0;
@@ -332,13 +314,15 @@ export default function TacticCard({
                         }
 
                         const VariantIcon =
-                          variant.Name === "Large Strategy" ? CheckCheck : Check;
+                          variant.Name === "Large Strategy"
+                            ? CheckCheck
+                            : Check;
 
                         return (
                           <div
                             key={`${tactic.ID}-variant-${index}`}
                             onClick={() => handleVariantChange(variant.Name)}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 text-center flex flex-col items-center justify-center
+                            className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 text-center flex flex-col items-center justify-center
                               ${
                                 currentConfig.selectedVariantName ===
                                 variant.Name
@@ -349,42 +333,42 @@ export default function TacticCard({
                             <div className="flex items-center gap-2 text-primary-main mb-1">
                               {variant.Duration_Months ? (
                                 <>
-                                  <CalendarDays className="w-5 h-5" />
-                                  <span className="font-semibold text-lg">
+                                  <CalendarDays className="w-4 h-4" />
+                                  <span className="font-semibold text-sm">
                                     {variant.Duration_Months} Months
                                   </span>
                                 </>
                               ) : (
                                 <>
-                                  <VariantIcon className="w-5 h-5" />
-                                  <span className="font-semibold text-lg">
+                                  <VariantIcon className="w-4 h-4" />
+                                  <span className="font-semibold text-sm">
                                     {variant.Name}
                                   </span>
                                 </>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-gray-700">
+                            <div className="flex items-center gap-1 text-gray-600">
                               {variant.Duration_Months ? (
                                 <>
-                                  <Clock className="w-4 h-4" />
-                                  <span className="text-md">
+                                  <Clock className="w-3 h-3" />
+                                  <span className="text-xs">
                                     {variant.Monthly_Hours} hrs/month
                                   </span>
                                 </>
                               ) : (
-                                <span className="text-md">
+                                <span className="text-xs">
                                   {variant.Description}
                                 </span>
                               )}
                             </div>
                             {discountRate > 0 && (
-                              <p className="text-sm text-green-600 font-semibold mt-2">
+                              <p className="text-xs text-green-600 font-semibold mt-1">
                                 Save ${formatCurrency(discountAmount)} (
                                 {Math.round(discountRate * 100)}%)
                               </p>
                             )}
                             {variant.Duration_Months && (
-                              <p className="text-sm text-gray-800 font-semibold mt-1">
+                              <p className="text-xs text-gray-700 font-semibold mt-1">
                                 Total: ${formatCurrency(finalCost)}
                               </p>
                             )}
@@ -395,75 +379,37 @@ export default function TacticCard({
                   )}
                 </div>
               )}
-              {tactic.ID === 13 &&
-                tactic.Adjustments.some(
-                  (adj) =>
-                    adj.Unit === "additional user journey" &&
-                    adj.Hours_Per_Unit === "TBD"
-                ) && (
-                  <p className="text-sm text-secondary-main mt-2">
-                    Note: Hours/Cost for "additional user journey" for Meclabs
-                    Conversion Review was TBD in original data. Defaulting to 1
-                    hour per journey.
-                  </p>
-                )}
 
-              {allSubtasks.length > 0 && show && (
-                <div className="mt-4">
-                  <h4
-                    className="text-md font-semibold text-gray-700 cursor-pointer flex items-center justify-between"
-                    onClick={() => setShowSubtasks(!showSubtasks)}
-                  >
+              {allSubtasks && allSubtasks.length > 0 && show && (
+                <div className="mt-3">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">
                     Sub-tasks:
-                    <svg
-                      className={`w-4 h-4 transform transition-transform duration-200 ${
-                        showSubtasks ? "rotate-90" : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M9 5l7 7-7 7"
-                      ></path>
-                    </svg>
                   </h4>
-                  {showSubtasks && (
-                    <ul className="list-disc pl-5 text-gray-600 text-sm space-y-1 mt-2">
-                      {allSubtasks.map((sub, index) => {
-                        let subtaskHours = sub.Hours;
-                        if (
-                          tactic.Type === "Execution" &&
-                          tactic.ID === 15 &&
-                          currentConfig.selectedVariantName
-                        ) {
-                          const selectedVariant = tactic.Variants.find(
-                            (v) => v.Name === currentConfig.selectedVariantName
-                          );
-                          if (selectedVariant) {
-                            subtaskHours =
-                              sub.Proportion * selectedVariant.Monthly_Hours;
-                          }
-                        }
-                        const subtaskCost = subtaskHours * HOURLY_RATE;
-                        return (
-                          <li key={`${tactic.ID}-${sub.ID}-${index}`}>
-                            {sub.Name} (
-                            {showCost
-                              ? `$${formatCurrency(subtaskCost)}`
-                              : `${formatHoursToMinutes(
-                                  subtaskHours
-                                )} • $${formatCurrency(subtaskCost)}`}
-                            )
-                          </li>
+                  <ul className="list-disc pl-5 text-gray-500 text-xs space-y-1">
+                    {allSubtasks.map((sub, index) => {
+                      let subtaskHours = sub.Hours;
+                      if (
+                        tactic.Type === "Execution" &&
+                        tactic.ID === 15 &&
+                        currentConfig.selectedVariantName
+                      ) {
+                        const selectedVariant = tactic.Variants.find(
+                          (v) => v.Name === currentConfig.selectedVariantName
                         );
-                      })}
-                    </ul>
-                  )}
+                        if (selectedVariant && sub.Proportion) {
+                          subtaskHours =
+                            sub.Proportion * selectedVariant.Monthly_Hours;
+                        }
+                      }
+                      const subtaskCost = subtaskHours * HOURLY_RATE;
+                      return (
+                        <li key={`${tactic.ID}-${sub.ID}-${index}`}>
+                          {sub.Name} ({formatHoursToMinutes(subtaskHours)} • $
+                          {formatCurrency(subtaskCost)})
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               )}
             </div>

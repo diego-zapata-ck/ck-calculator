@@ -1,70 +1,30 @@
-import { useState, useMemo, useReducer } from "react";
-import { Wallet, Edit } from "lucide-react";
+import { useState, useMemo } from "react";
 import { data } from "./data";
 import {
   CATEGORY_ORDER,
   categorizedData,
   packages,
   buildInitialConfigs,
-  EXECUTION_TACTIC_ID,
-  STRATEGY_TACTIC_ID,
   calculateTacticCost,
   computeTotals,
 } from "./constants";
-import TacticCard from "./components/TacticCard";
-import ClientDetailsModal from "./components/ClientDetailsModal";
-import SelectionSidebar from "./components/SelectionSidebar";
-import TotalsSummary from "./components/TotalsSummary";
-import ExecutionConfigurator from "./components/ExecutionConfigurator";
+import Header from "./components/Header";
 import PackageSelector from "./components/PackageSelector";
-
-const initialViewState = {
-  showCost: false,
-  showHours: false,
-  allServicesCollapsed: false,
-  isModalOpen: false
-};
-
-function viewReducer(state, action) {
-  switch (action.type) {
-    case "TOGGLE_COST":
-      return { ...state, showCost: !state.showCost };
-    case "TOGGLE_HOURS":
-      return { ...state, showHours: !state.showHours };
-    case "TOGGLE_COLLAPSE":
-      return { ...state, allServicesCollapsed: !state.allServicesCollapsed };
-    case "OPEN_MODAL":
-      return { ...state, isModalOpen: true };
-    case "CLOSE_MODAL":
-      return { ...state, isModalOpen: false };
-    default:
-      return state;
-  }
-}
+import ServiceCard from "./components/ServiceCard";
+import TotalsSummary from "./components/TotalsSummary";
+import Footer from "./components/Footer";
 
 function App() {
   const uri = new URL(window.location.href);
+  const [show] = useState(!!uri.searchParams.get("show"));
 
   const [allTacticConfigurations, setAllTacticConfigurations] =
     useState(buildInitialConfigs);
   const [selectedTactics, setSelectedTactics] = useState({});
-  const [discountPercentage, setDiscountPercentage] = useState(0);
-  const [executionMonthlyHours, setExecutionMonthlyHours] = useState(40);
-  const [executionMonthlyDuration, setExecutionMonthlyDuration] = useState(6);
-
-  const [show] = useState(!!uri.searchParams.get("show"));
-  const [viewState, dispatch] = useReducer(viewReducer, initialViewState);
-
-  const [clientDetails, setClientDetails] = useState({
-    clientName: "",
-    websiteUrl: "",
-    brief: "",
-  });
-  const clientDetailsEntered = !!(
-    clientDetails.clientName ||
-    clientDetails.websiteUrl ||
-    clientDetails.brief
-  );
+  const [discountPercentage] = useState(0);
+  const [showPrice, setShowPrice] = useState(true);
+  const [kickoffDate, setKickoffDate] = useState("");
+  const [activePackage, setActivePackage] = useState(null);
 
   const totals = useMemo(
     () => computeTotals(selectedTactics, discountPercentage),
@@ -76,18 +36,20 @@ function App() {
       const newSelection = { ...prev };
       if (newSelection[service.ID]) {
         delete newSelection[service.ID];
-        if (service.ID === STRATEGY_TACTIC_ID || service.ID === EXECUTION_TACTIC_ID) {
-          delete newSelection[EXECUTION_TACTIC_ID];
-          delete newSelection[STRATEGY_TACTIC_ID];
-        }
       } else {
         const configToUse =
           currentServiceConfig || allTacticConfigurations[service.ID] || {};
         const { hours, cost } = calculateTacticCost(service, configToUse);
-        newSelection[service.ID] = { tactic: service, config: configToUse, hours, cost };
+        newSelection[service.ID] = {
+          tactic: service,
+          config: configToUse,
+          hours,
+          cost,
+        };
       }
       return newSelection;
     });
+    setActivePackage(null);
   };
 
   const handleSelectPackage = (packageName) => {
@@ -120,7 +82,7 @@ function App() {
     });
     setSelectedTactics(newSelectedTactics);
     setAllTacticConfigurations(newAllTacticConfigurations);
-    setDiscountPercentage(0);
+    setActivePackage(packageName);
   };
 
   const updateTacticConfig = (tacticId, newConfig) => {
@@ -129,14 +91,17 @@ function App() {
       setSelectedTactics((selectedPrev) => {
         if (selectedPrev[tacticId]) {
           const updatedTactic = selectedPrev[tacticId].tactic;
-          const { hours, cost } = calculateTacticCost(updatedTactic, newConfig);
+          const { hours, cost } = calculateTacticCost(
+            updatedTactic,
+            newConfig,
+          );
           return {
             ...selectedPrev,
             [tacticId]: {
               ...selectedPrev[tacticId],
               config: newConfig,
               hours,
-              cost
+              cost,
             },
           };
         }
@@ -146,237 +111,85 @@ function App() {
     });
   };
 
-  const handleExecutionToggle = (value, option) => {
-    let newMonthlyHours = executionMonthlyHours;
-    let newDuration = executionMonthlyDuration;
+  const hasSelectedTactics = Object.keys(selectedTactics).length > 0;
 
-    switch (option) {
-      case "Monthly_Hours":
-        newMonthlyHours = parseInt(value);
-        setExecutionMonthlyHours(newMonthlyHours);
-        break;
-      case "Duration_Months":
-        newDuration = parseInt(value);
-        setExecutionMonthlyDuration(newDuration);
-        break;
-      default:
-        break;
-    }
-
-    const executionData = data.find((t) => t.Type === "Execution");
-    const strategyData = data.find((t) => t.Type === "Strategy");
-
-    if (executionData) {
-      const selectedVariant = executionData.Variants.find(
-        (v) =>
-          v.Monthly_Hours === newMonthlyHours &&
-          v.Duration_Months === newDuration,
-      );
-      if (selectedVariant) {
-        updateTacticConfig(executionData.ID, {
-          selectedVariantName: selectedVariant.Name,
-        });
-        updateTacticConfig(strategyData.ID, {
-          selectedVariantName:
-            selectedVariant.Duration_Months > 6
-              ? "Large Strategy"
-              : "Small Strategy",
-        });
-      }
-    }
-  };
-
-  const handleExecutionAddRemove = () => {
-    const executionData = data.find((t) => t.Type === "Execution");
-    const strategyData = data.find((t) => t.Type === "Strategy");
-
-    if (!selectedTactics[executionData.ID]) {
-      toggleTacticSelection(
-        executionData,
-        allTacticConfigurations[executionData.ID],
-      );
-      toggleTacticSelection(
-        strategyData,
-        allTacticConfigurations[strategyData.ID],
-      );
-    } else {
-      toggleTacticSelection(
-        executionData,
-        allTacticConfigurations[executionData.ID],
-      );
-    }
-  };
+  // Divider categories — draw a line before "Strategy"
+  const dividerBefore = new Set(["Strategy"]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-tertiary-light to-blue-100 font-sans text-gray-800 p-4 sm:p-6 lg:p-8">
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-center text-tertiary-text mb-8 mt-4 leading-tight">
-        Service Cost Calculator
-      </h1>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-white font-sans text-gray-800">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Header />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-grow">
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-lg flex flex-col">
-          <h2 className="text-2xl font-bold text-primary-main mb-6 border-b pb-3 border-gray-200">
-            Available Services
-          </h2>
+        <PackageSelector
+          activePackage={activePackage}
+          onSelectPackage={handleSelectPackage}
+        />
 
-          <div className="mb-6 pb-4 border-b border-gray-200">
-            {clientDetailsEntered ? (
-              <>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-tertiary-text">
-                    Client Project Information:
-                  </h3>
-                  <button
-                    onClick={() => dispatch({ type: "OPEN_MODAL" })}
-                    className="px-4 py-2 rounded-md text-sm font-medium btn-secondary flex items-center gap-2"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit Details
-                  </button>
-                </div>
-                <div className="text-gray-700 text-base space-y-1">
-                  {clientDetails.clientName && (
-                    <p>
-                      <span className="font-semibold">Client Name:</span>{" "}
-                      {clientDetails.clientName}
-                    </p>
-                  )}
-                  {clientDetails.websiteUrl && (
-                    <p>
-                      <span className="font-semibold">Website URL:</span>{" "}
-                      <a
-                        href={clientDetails.websiteUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-main hover:underline"
-                      >
-                        {clientDetails.websiteUrl}
-                      </a>
-                    </p>
-                  )}
-                  {clientDetails.brief && (
-                    <p>
-                      <span className="font-semibold">Project Brief:</span>{" "}
-                      {clientDetails.brief}
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center py-6">
-                <button
-                  onClick={() => dispatch({ type: "OPEN_MODAL" })}
-                  className="px-6 py-3 rounded-lg font-semibold shadow-md btn-primary flex items-center gap-2"
-                >
-                  <Edit className="w-5 h-5" />
-                  Add Client Details
-                </button>
-              </div>
-            )}
-          </div>
-
-          <PackageSelector onSelectPackage={handleSelectPackage} />
-
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              {show && (
-                <>
-                  <button
-                    onClick={() => dispatch({ type: "TOGGLE_COST" })}
-                    className="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm flex items-center gap-2 min-w-[150px] cursor-pointer bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  >
-                    <Wallet className="w-4 h-4" />
-                    {viewState.showCost ? "Hide Costs" : "Show Costs"}
-                  </button>
-                  <button
-                    onClick={() => dispatch({ type: "TOGGLE_HOURS" })}
-                    className="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 shadow-sm flex items-center min-w-[150px] gap-2 cursor-pointer bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  >
-                    <Wallet className="w-4 h-4" />
-                    {viewState.showHours ? "Hide hours" : "Show hours"}
-                  </button>
-                </>
-              )}
-            </div>
+        {/* Show price toggle */}
+        <div className="flex justify-end mb-6">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">Show price</span>
             <button
-              onClick={() => dispatch({ type: "TOGGLE_COLLAPSE" })}
-              className="px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300 shadow-sm cursor-pointer"
+              onClick={() => setShowPrice(!showPrice)}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
+                showPrice ? "bg-primary-main" : "bg-gray-300"
+              }`}
             >
-              {viewState.allServicesCollapsed
-                ? "Expand All Services"
-                : "Collapse All Services"}
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
+                  showPrice ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
             </button>
           </div>
+        </div>
 
-          <div className="flex flex-col gap-6 scrollable-content overflow-y-auto flex-grow">
-            {CATEGORY_ORDER.map((categoryType) => {
-              const services = categorizedData[categoryType];
-              if (
-                services &&
-                categoryType === "Auditing" &&
-                services.length > 0
-              ) {
-                return (
-                  <div key={categoryType} className="mb-8">
-                    <h3 className="text-2xl font-bold text-tertiary-text mb-4 border-b pb-2 border-gray-200">
-                      {categoryType} Services
-                    </h3>
-                    <div className="flex flex-col gap-6">
-                      {services.map((service) => (
-                        <TacticCard
-                          key={service.ID}
-                          tactic={service}
-                          isSelected={!!selectedTactics[service.ID]}
-                          onToggle={toggleTacticSelection}
-                          onConfigChange={updateTacticConfig}
-                          currentConfig={
-                            allTacticConfigurations[service.ID] || {}
-                          }
-                          show={show}
-                          forceCollapse={viewState.allServicesCollapsed}
-                          showCost={viewState.showCost}
-                          showHours={viewState.showHours}
-                          allTacticConfigurations={allTacticConfigurations}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
+        {/* Service categories */}
+        {CATEGORY_ORDER.map((categoryName) => {
+          const services = categorizedData[categoryName];
+          if (!services || services.length === 0) return null;
 
-            <ExecutionConfigurator
-              executionMonthlyHours={executionMonthlyHours}
-              executionMonthlyDuration={executionMonthlyDuration}
-              onToggle={handleExecutionToggle}
-              onAddRemove={handleExecutionAddRemove}
-              isSelected={!!selectedTactics[EXECUTION_TACTIC_ID]}
-            />
-          </div>
+          return (
+            <div key={categoryName}>
+              {dividerBefore.has(categoryName) && (
+                <hr className="border-gray-200 my-8" />
+              )}
+              <section className="mb-8">
+                <h3 className="text-lg font-bold text-tertiary-text mb-4">
+                  {categoryName}
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {services.map((service) => (
+                    <ServiceCard
+                      key={service.ID}
+                      tactic={service}
+                      isSelected={!!selectedTactics[service.ID]}
+                      onToggle={toggleTacticSelection}
+                      onConfigChange={updateTacticConfig}
+                      currentConfig={
+                        allTacticConfigurations[service.ID] || {}
+                      }
+                      showPrice={showPrice}
+                      show={show}
+                    />
+                  ))}
+                </div>
+              </section>
+            </div>
+          );
+        })}
 
+        {/* Totals */}
+        {hasSelectedTactics && (
           <TotalsSummary
             totals={totals}
             selectedTactics={selectedTactics}
-            executionMonthlyDuration={executionMonthlyDuration}
-            showHours={viewState.showHours}
           />
-        </div>
+        )}
 
-        <SelectionSidebar
-          selectedTactics={selectedTactics}
-          toggleTacticSelection={toggleTacticSelection}
-          showHours={viewState.showHours}
-          showCost={viewState.showCost}
-        />
+        <Footer kickoffDate={kickoffDate} onDateChange={setKickoffDate} />
       </div>
-
-      <ClientDetailsModal
-        isOpen={viewState.isModalOpen}
-        onClose={() => dispatch({ type: "CLOSE_MODAL" })}
-        onSave={setClientDetails}
-        initialData={clientDetails}
-      />
     </div>
   );
 }

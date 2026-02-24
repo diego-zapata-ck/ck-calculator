@@ -78,11 +78,21 @@ export const getCroVariantDiscount = (duration, monthlyHours) => {
 export const STRATEGY_TACTIC_ID = 14;
 export const EXECUTION_TACTIC_ID = 15;
 
-export const CATEGORY_ORDER = ["Auditing", "Strategy", "Execution"];
+export const CATEGORY_ORDER = [
+  "Account & project management",
+  "Technical review",
+  "Data analysis",
+  "UX fundamentals",
+  "Customer insights",
+  "Conversion",
+  "Strategy",
+  "Experimentation",
+];
 
 export const categorizedData = data.reduce((acc, service) => {
-  acc[service.Type] = acc[service.Type] || [];
-  acc[service.Type].push(service);
+  const cat = service.category;
+  acc[cat] = acc[cat] || [];
+  acc[cat].push(service);
   return acc;
 }, {});
 
@@ -93,17 +103,22 @@ export const executionOptions = {
 };
 
 export const packages = {
-  Light: {
-    name: "Essential Optimisation",
-    description:
-      "Includes Onboarding, Baseline Performance Dashboard, UX/UI Review, Conversion Review, Strategy, and Execution.",
+  Essentials: {
+    name: "Essentials",
+    description: "Best for companies with smaller budgets",
     serviceIds: [1, 4, 7, 13, 14, 15],
   },
-  Full: {
-    name: "Enterprise Optimisation",
-    description: "Includes all tactics, strategy, and Execution",
+  Pro: {
+    name: "Pro",
+    popular: true,
+    description: "Best for medium-sized companies",
+    serviceIds: [1, 2, 3, 4, 6, 7, 13, 14, 15],
+  },
+  Enterprise: {
+    name: "Enterprise",
+    description: "Best for those who want all we offer",
     serviceIds: data.map((t) => t.ID),
-  }
+  },
 };
 
 export const buildInitialConfigs = () => {
@@ -197,11 +212,10 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
   let totalHoursBeforeAllSavings = 0;
   let totalCostBeforeAllSavings = 0;
 
-  const categoryTotals = {
-    Auditing: { hours: 0, cost: 0 },
-    Strategy: { hours: 0, cost: 0 },
-    Execution: { hours: 0, cost: 0 },
-  };
+  const categoryTotals = {};
+  CATEGORY_ORDER.forEach((cat) => {
+    categoryTotals[cat] = { hours: 0, cost: 0 };
+  });
 
   const seenSubtasks = new Set();
   let retainerDiscount = 0;
@@ -218,8 +232,11 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
       retainerDiscount += itemHours * HOURLY_RATE - itemCost;
     }
 
-    categoryTotals[entry.tactic.Type].hours += itemHours;
-    categoryTotals[entry.tactic.Type].cost += itemCost;
+    const cat = entry.tactic.category;
+    if (categoryTotals[cat]) {
+      categoryTotals[cat].hours += itemHours;
+      categoryTotals[cat].cost += itemCost;
+    }
     totalHoursBeforeAllSavings += itemHours;
     totalCostBeforeAllSavings += itemCost;
 
@@ -236,15 +253,6 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
       });
     }
   });
-
-  categoryTotals.Auditing.hours = Math.max(
-    0,
-    categoryTotals.Auditing.hours - sharedTaskHoursSaved,
-  );
-  categoryTotals.Auditing.cost = Math.max(
-    0,
-    categoryTotals.Auditing.cost - sharedTaskCostSaved,
-  );
 
   const costAfterCommonSavings =
     totalCostBeforeAllSavings - sharedTaskCostSaved;

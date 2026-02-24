@@ -2,7 +2,9 @@ export const data = [
   {
     ID: 1,
     Type: "Auditing",
+    category: "Account & project management",
     Name: "ONBOARDING",
+    displayName: "Onboarding",
     "Base Hours": (16 + 5 / 60),
     Description:
       "Kickstart your project with seamless setup of systems and processes for a productive start.",
@@ -23,7 +25,9 @@ export const data = [
   {
     ID: 2,
     Type: "Auditing",
+    category: "Technical review",
     Name: "TECHNICAL AUDIT",
+    displayName: "Technical audit",
     "Base Hours": (12 + 35 / 60),
     Description:
       "Identify and resolve critical technical issues that might impact website conversion rate, establishing a reliable foundation for ongoing optimisation.",
@@ -55,7 +59,9 @@ export const data = [
   {
     ID: 3,
     Type: "Auditing",
+    category: "Data analysis",
     Name: "GOOGLE ANALYTIC AUDIT",
+    displayName: "Google Analytics audit",
     "Base Hours": (11 + 5 / 60),
     Description:
       "Ensure Google Analytics is configured to provide truthful, correct, and reliable data, giving confidence in the insights used for testing and decision-making.",
@@ -86,7 +92,9 @@ export const data = [
   {
     ID: 4,
     Type: "Auditing",
+    category: "Data analysis",
     Name: "BASELINE PERFORMANCE",
+    displayName: "Baseline performance",
     "Base Hours": 18 + 35 / 60,
     Description:
       "Understand the performance of your website while identifying high-value audiences and key fallout areas.",
@@ -128,7 +136,9 @@ export const data = [
   {
     ID: 6,
     Type: "Auditing",
+    category: "Data analysis",
     Name: "USER JOURNEY & DATA ANALYSIS",
+    displayName: "User journey & data analysis",
     "Base Hours": 26 + 20 / 60,
     Description:
       "Analyse valuable audiences and critical website funnels to identify the specific stages at which users disengage from their journeys",
@@ -159,7 +169,9 @@ export const data = [
   {
     ID: 7,
     Type: "Auditing",
+    category: "UX fundamentals",
     Name: "UX/UI REVIEW",
+    displayName: "UX/UI review",
     "Base Hours": 18 + 5 / 60,
     Description:
       "Identify UX/UI best practice violations based on Baymard’s 1080+ guidelines to address foundational usability issues",
@@ -181,7 +193,9 @@ export const data = [
   {
     ID: 8,
     Type: "Auditing",
+    category: "UX fundamentals",
     Name: "SEARCH & MERCH",
+    displayName: "Search & merch review",
     "Base Hours": 18 + 5 / 60,
     Description:
       "Guide users to the right product at the right time by analysing internal search and PLP merchandising to improve product findability, positioning and presentation",
@@ -203,7 +217,9 @@ export const data = [
   {
     ID: 5,
     Type: "Auditing",
+    category: "Customer insights",
     Name: "CUSTOMER SURVEY & NPS",
+    displayName: "Customer survey & NPS",
     "Base Hours": 31.5,
         Inclusions: ["500 Responses Analysed", "2 Segments reviewed"],
 
@@ -244,7 +260,9 @@ export const data = [
   {
     ID: 10,
     Type: "Auditing",
+    category: "Customer insights",
     Name: "SESSION RECORDING",
+    displayName: "Session recordings",
     "Base Hours": 18 + 5 / 60,
     Description:
       "Analyze on-page user behaviour in recorded sessions to pinpoint friction points, reveal drop-off patterns, and uncover key factors contributing to low conversion rates, while gaining access to session recordings for direct review.",
@@ -275,7 +293,9 @@ export const data = [
   {
     ID: 9,
     Type: "Auditing",
+    category: "Customer insights",
     Name: "USABILITY STUDIES",
+    displayName: "Usability studies",
     "Base Hours": 38 + 35 / 60,
     Description:
       "Conduct one-to-one interviews with website customers to observe their behaviour while performing both guided and non-guided tasks, validating hypotheses and uncovering hidden barriers.",
@@ -315,7 +335,9 @@ export const data = [
   {
     ID: 11,
     Type: "Auditing",
+    category: "Customer insights",
     Name: "COMPETITOR REVIEW",
+    displayName: "Competitor review",
     "Base Hours": 17 + 35 / 60,
     Description:
       "Get a competitive edge with a deep dive into your rivals’ websites exposing their strengths and turning those insights into clear strategies to outsmart, outshine, and outsell them.",
@@ -344,7 +366,9 @@ export const data = [
   {
     ID: 12,
     Type: "Auditing",
+    category: "Customer insights",
     Name: "INFORMATION ARCHITECTURE",
+    displayName: "Information architecture",
     "Base Hours": 22 + 35 / 60,
     Description:
       "Analyse and optimise the structure, labeling, and hierarchy of the main and footer navigation to streamline user journeys, reduce friction, guide visitors to key pages more efficiently, and ultimately drive higher conversion rates.",
@@ -366,7 +390,9 @@ export const data = [
   {
     ID: 13,
     Type: "Auditing",
+    category: "Conversion",
     Name: "CONVERSION REVIEW",
+    displayName: "Conversion review",
     "Base Hours": 26.58,
     Description:
       "Analyse your website using the MECLABS heuristic - enriched by years of research - to pinpoint exactly what’s blocking your conversions, and to create strategies to motivate users, incentivise actions, demonstrate value, and mitigate any friction or anxiety that may deter conversions. ",
@@ -403,7 +429,9 @@ export const data = [
   {
     ID: 14,
     Type: "Strategy",
+    category: "Strategy",
     Name: "STRATEGY",
+    displayName: "Strategy",
     "Base Hours": 0.0,
     Description:
       "Prioritize digital experience improvements by categorizing insights, planning conversion goals, and creating a comprehensive, collaborative testing roadmap for quarterly optimization.",
@@ -426,7 +454,9 @@ export const data = [
   {
     ID: 15,
     Type: "Execution",
+    category: "Experimentation",
     Name: "EXECUTION",
+    displayName: "Execution",
     "Base Hours": 0,
     Description:
       "Ongoing CRO support: consistent ideation, testing, and analysis for sustainable growth based on commitment.",
