@@ -5,6 +5,17 @@ export default function Footer({ kickoffDate, onDateChange }) {
     window.print();
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: "Service Cost Calculator Quote",
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
   return (
     <footer className="mt-10 pt-6 pb-10 space-y-8">
       <div className="flex items-center justify-between bg-white rounded-xl px-6 py-4 border border-gray-200">
@@ -23,12 +34,18 @@ export default function Footer({ kickoffDate, onDateChange }) {
         </div>
       </div>
 
-      <div className="flex justify-start">
+      <div className="flex gap-4">
         <button
           onClick={handlePrint}
           className="px-10 py-3 rounded-full font-semibold text-base btn-primary"
         >
           Print quote
+        </button>
+        <button
+          onClick={handleShare}
+          className="px-10 py-3 rounded-full font-semibold text-base border-2 border-tertiary-text text-tertiary-text hover:bg-gray-50 transition-colors cursor-pointer"
+        >
+          Share quote
         </button>
       </div>
     </footer>

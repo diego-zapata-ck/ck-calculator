@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import {
-  ArrowRight,
   ChevronDown,
   CalendarDays,
   Clock,
   CheckCheck,
   Check,
+  Minus,
+  Plus,
 } from "lucide-react";
 import {
   HOURLY_RATE,
@@ -40,7 +41,7 @@ export default function ServiceCard({
 
   if (!tactic) return null;
 
-  const IconComponent = TACTIC_ICONS[tactic.ID] || ArrowRight;
+  const iconSrc = TACTIC_ICONS[tactic.ID];
   const allSubtasks = tactic["Sub-tasks"];
 
   const handleInputChange = (e) => {
@@ -62,23 +63,52 @@ export default function ServiceCard({
     });
   };
 
+  const handleStepper = (name, currentValue, delta) => {
+    const newValue = Math.max(0, (currentValue || 0) + delta);
+    onConfigChange(tactic.ID, { ...currentConfig, [name]: newValue });
+  };
+
+  const Stepper = ({ name, value }) => (
+    <div className="flex items-center gap-0 border border-gray-200 rounded-lg overflow-hidden">
+      <button
+        onClick={() => handleStepper(name, value, -1)}
+        className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+      >
+        <Minus className="w-3.5 h-3.5" />
+      </button>
+      <span className="px-4 py-1.5 text-sm font-medium text-gray-700 min-w-[2rem] text-center border-x border-gray-200">
+        {value || 0}
+      </span>
+      <button
+        onClick={() => handleStepper(name, value, 1)}
+        className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+      >
+        <Plus className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+
   const hasConfig =
     (tactic.Adjustments && tactic.Adjustments.length > 0) ||
     (tactic.Variants && tactic.Variants.length > 0);
 
   return (
     <div
-      className={`rounded-xl border transition-all duration-200 ${
+      className={`rounded-xl border transition-all duration-200 bg-white ${
         isSelected
-          ? "bg-primary-light border-primary-main"
-          : "bg-white border-gray-200"
+          ? "border-l-4 border-l-primary-main border-gray-200"
+          : "border-gray-200"
       }`}
     >
       {/* Main row */}
       <div className="flex items-center justify-between px-5 py-4 gap-4">
         <div className="flex items-center gap-3 flex-grow min-w-0">
           <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
-            <IconComponent className="w-5 h-5 text-primary-main" />
+            {iconSrc ? (
+              <img src={iconSrc} alt={tactic.Name} className="w-6 h-6 object-contain" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-primary-main" />
+            )}
           </div>
           <span className="font-medium text-gray-900 text-base">
             {tactic.displayName || tactic.Name}
@@ -149,47 +179,28 @@ export default function ServiceCard({
                 >
                   {adj.Type === "per_unit" &&
                     adj.Unit !== "additional user journey" && (
-                      <>
-                        <label
-                          htmlFor={`${tactic.ID}-${adj.Unit.replace(
-                            /\s/g,
-                            ""
-                          )}`}
-                          className="text-sm text-gray-600"
-                        >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
                           {adj.Description}
-                        </label>
-                        <input
-                          type="number"
-                          id={`${tactic.ID}-${adj.Unit.replace(/\s/g, "")}`}
+                        </span>
+                        <Stepper
                           name={adj.Unit.replace(/\s/g, "")}
                           value={
                             currentConfig[adj.Unit.replace(/\s/g, "")] || 0
                           }
-                          onChange={handleInputChange}
-                          min="0"
-                          className="input-field w-24"
                         />
-                      </>
+                      </div>
                     )}
                   {adj.Type === "threshold" && (
-                    <>
-                      <label
-                        htmlFor={`${tactic.ID}-numLeadGenEvents`}
-                        className="text-sm text-gray-600"
-                      >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
                         {adj.Description}
-                      </label>
-                      <input
-                        type="number"
-                        id={`${tactic.ID}-numLeadGenEvents`}
+                      </span>
+                      <Stepper
                         name="numLeadGenEvents"
                         value={currentConfig.numLeadGenEvents ?? 0}
-                        onChange={handleInputChange}
-                        min="0"
-                        className="input-field w-24"
                       />
-                    </>
+                    </div>
                   )}
                   {adj.Type === "fixed_increase" && (
                     <div className="flex items-center gap-2">
@@ -211,25 +222,17 @@ export default function ServiceCard({
                   )}
                   {tactic.ID === 13 &&
                     adj.Unit === "additional user journey" && (
-                      <>
-                        <label
-                          htmlFor={`${tactic.ID}-numAdditionalUserJourneysMeclabs`}
-                          className="text-sm text-gray-600"
-                        >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
                           {adj.Description}
-                        </label>
-                        <input
-                          type="number"
-                          id={`${tactic.ID}-numAdditionalUserJourneysMeclabs`}
+                        </span>
+                        <Stepper
                           name="numAdditionalUserJourneysMeclabs"
                           value={
                             currentConfig.numAdditionalUserJourneysMeclabs || 0
                           }
-                          onChange={handleInputChange}
-                          min="0"
-                          className="input-field w-24"
                         />
-                      </>
+                      </div>
                     )}
                 </div>
               ))}

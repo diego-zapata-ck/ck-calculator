@@ -1,40 +1,23 @@
-import {
-  UserPlus,
-  Bug,
-  BarChart2,
-  ClipboardList,
-  Gauge,
-  Map,
-  Layout,
-  Search,
-  Users,
-  Video,
-  Swords,
-  Layers,
-  DollarSign,
-  Lightbulb,
-  Play,
-} from "lucide-react";
 import { data } from "./data";
 
 export const HOURLY_RATE = 240;
 
 export const TACTIC_ICONS = {
-  1: UserPlus,
-  2: Bug,
-  3: BarChart2,
-  4: ClipboardList,
-  5: Gauge,
-  6: Map,
-  7: Layout,
-  8: Search,
-  9: Users,
-  10: Video,
-  11: Swords,
-  12: Layers,
-  13: DollarSign,
-  14: Lightbulb,
-  15: Play,
+  1: "/icons/onboarding.png",
+  2: "/icons/technical-audit.png",
+  3: "/icons/ga-audit.png",
+  4: "/icons/baseline-performance.png",
+  5: "/icons/customer-survey.png",
+  6: "/icons/user-journey.png",
+  7: "/icons/ux-review.png",
+  8: "/icons/search-merch.png",
+  9: "/icons/usability-studies.png",
+  10: "/icons/session-recording.png",
+  11: "/icons/competitor-review.png",
+  12: "/icons/info-architecture.png",
+  13: "/icons/conversion-review.png",
+  14: "/icons/strategy.png",
+  15: "/icons/experimentation.png",
 };
 
 export const COMMON_SUBTASK_NAMES = [
