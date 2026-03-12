@@ -8,7 +8,10 @@ export default function Header() {
           className="h-8 object-contain"
         />
       </div>
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-tertiary-text mb-4 leading-tight">
+      <h1
+        className="font-black text-tertiary-text mb-4 leading-tight"
+        style={{ fontFamily: 'Lato, sans-serif', fontSize: 40 }}
+      >
         Service Cost Calculator
       </h1>
       <p className="text-gray-500 text-base max-w-2xl">

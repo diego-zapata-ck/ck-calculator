@@ -39,7 +39,7 @@ export default function OrderSummary({
 
   return (
     <div className="sticky top-8">
-      <div className="bg-white p-6">
+      <div className="p-6 pt-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold" style={{ color: '#171C38' }}>

@@ -3,7 +3,7 @@ import { packages } from "../constants";
 
 export default function PackageSelector({ activePackage, onSelectPackage }) {
   return (
-    <section className="mb-4">
+    <section>
       <h2 className="text-xl font-bold mb-5" style={{ color: '#171C38' }}>
         Our proven programs
       </h2>
@@ -21,8 +21,8 @@ export default function PackageSelector({ activePackage, onSelectPackage }) {
                   ? '1px solid rgba(0,0,0,0.14)'
                   : '1px solid #E4E4E4',
                 backgroundColor: isActive
-                  ? 'white'
-                  : 'rgba(255,255,255,0.37)',
+                  ? 'rgba(255,255,255,0.95)'
+                  : 'rgba(255,255,255,0.5)',
               }}
             >
               {isActive && (
@@ -41,7 +41,7 @@ export default function PackageSelector({ activePackage, onSelectPackage }) {
               <div className="flex items-center gap-2 mb-1">
                 <h3
                   className="text-lg font-bold"
-                  style={{ color: pkg.popular ? '#25B1A2' : '#212121' }}
+                  style={{ color: pkg.popular && isActive ? '#25B1A2' : '#212121' }}
                 >
                   {pkg.name}
                 </h3>

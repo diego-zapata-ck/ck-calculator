@@ -16,32 +16,13 @@ import TotalsSummary from "./components/TotalsSummary";
 import Footer from "./components/Footer";
 
 function App() {
-  const uri = new URL(window.location.href);
-  const [show] = useState(!!uri.searchParams.get("show"));
-
   const [allTacticConfigurations, setAllTacticConfigurations] =
     useState(buildInitialConfigs);
-  const [selectedTactics, setSelectedTactics] = useState(() => {
-    const pkg = packages.Pro;
-    const configs = buildInitialConfigs();
-    const initial = {};
-    pkg.serviceIds.forEach((id) => {
-      const service = data.find((t) => t.ID === id);
-      if (service) {
-        const config = configs[id] || {};
-        if (service.Variants?.length > 0 && !config.selectedVariantName) {
-          config.selectedVariantName = service.Variants[0].Name;
-        }
-        const { hours, cost } = calculateTacticCost(service, config);
-        initial[id] = { tactic: service, config, hours, cost };
-      }
-    });
-    return initial;
-  });
+  const [selectedTactics, setSelectedTactics] = useState({});
   const [discountPercentage] = useState(0);
   const [showPrice, setShowPrice] = useState(true);
   const [kickoffDate, setKickoffDate] = useState("");
-  const [activePackage, setActivePackage] = useState("Pro");
+  const [activePackage, setActivePackage] = useState(null);
 
   const totals = useMemo(
     () => computeTotals(selectedTactics, discountPercentage),
@@ -130,16 +111,16 @@ function App() {
   const hasSelectedTactics = Object.keys(selectedTactics).length > 0;
 
   // Divider categories — draw a line before "Strategy"
-  const dividerBefore = new Set(["Strategy"]);
+  const dividerBefore = new Set(["Strategy", "Experimentation"]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left column — main content */}
+          {/* Left column */}
           <div className="lg:col-span-2">
-            {/* Decorative header background */}
-            <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pb-6" style={{ background: '#F8F8F8' }}>
+            {/* Header with gradient background */}
+            <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8" style={{ background: '#F8F8F8' }}>
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
@@ -180,6 +161,7 @@ function App() {
                   activePackage={activePackage}
                   onSelectPackage={handleSelectPackage}
                 />
+                <div className="pb-8" />
               </div>
             </div>
 
@@ -218,10 +200,13 @@ function App() {
               return (
                 <div key={categoryName}>
                   {dividerBefore.has(categoryName) && (
-                    <hr className="border-gray-200 my-8" />
+                    <hr className="my-10" style={{ borderColor: '#E4E4E4' }} />
                   )}
                   <section className="mb-8">
-                    <h3 className="text-lg font-bold text-tertiary-text mb-4">
+                    <h3
+                      className="text-lg font-bold text-tertiary-text mb-4"
+                      style={{ fontFamily: 'Lato, sans-serif' }}
+                    >
                       {categoryName}
                     </h3>
                     <div className="flex flex-col gap-3">
@@ -236,7 +221,6 @@ function App() {
                             allTacticConfigurations[service.ID] || {}
                           }
                           showPrice={showPrice}
-                          show={show}
                         />
                       ))}
                     </div>
@@ -257,7 +241,7 @@ function App() {
           </div>
 
           {/* Right column — Order summary sidebar */}
-          <div className="hidden lg:block pt-10 bg-white min-h-screen">
+          <div className="hidden lg:block min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
             <OrderSummary
               showPrice={showPrice}
               setShowPrice={setShowPrice}
