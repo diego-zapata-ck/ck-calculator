@@ -1,29 +1,13 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { CATEGORY_ORDER, formatCurrency } from "../constants";
+import { formatCurrency } from "../constants";
 
-const INVESTMENT_GROUPS = {
-  Auditing: {
-    label: "Auditing",
-    categories: [
-      "Account & project management",
-      "Technical review",
-      "Data analysis",
-      "UX fundamentals",
-      "Customer insights",
-      "Conversion",
-    ],
-  },
-  Strategy: {
-    label: "Strategy",
-    categories: ["Strategy"],
-  },
-  Execution: {
-    label: "Execution",
-    categories: ["Experimentation"],
-    suffix: "/ month",
-  },
-};
+const INVESTMENT_GROUPS = [
+  { key: "Auditing", label: "Auditing", types: ["Auditing"] },
+  { key: "Strategy", label: "Strategy", types: ["Strategy"] },
+  { key: "Execution", label: "Execution", types: ["Execution"], suffix: "/ month" },
+  { key: "Technology", label: "Technology", types: ["Technology"], suffix: "/ month" },
+];
 
 export default function TotalsSummary({ totals, selectedTactics }) {
   const [expandedGroups, setExpandedGroups] = useState({});
@@ -34,16 +18,16 @@ export default function TotalsSummary({ totals, selectedTactics }) {
 
   const getGroupCost = (group) => {
     let cost = 0;
-    group.categories.forEach((cat) => {
-      if (totals.categoryTotals[cat]) {
-        cost += totals.categoryTotals[cat].cost;
+    group.types.forEach((type) => {
+      if (totals.typeTotals && totals.typeTotals[type]) {
+        cost += totals.typeTotals[type].cost;
       }
     });
     return cost;
   };
 
-  const activeGroups = Object.entries(INVESTMENT_GROUPS).filter(
-    ([, group]) => getGroupCost(group) > 0,
+  const activeGroups = INVESTMENT_GROUPS.filter(
+    (group) => getGroupCost(group) > 0,
   );
 
   if (activeGroups.length === 0) return null;
@@ -52,15 +36,15 @@ export default function TotalsSummary({ totals, selectedTactics }) {
     <div className="mt-8">
       <h3 className="text-lg font-bold text-tertiary-text mb-4">Investment</h3>
 
-      <div className="bg-purple-50 rounded-xl p-5 border border-purple-100">
+      <div className="p-5" style={{ backgroundColor: 'rgba(230, 231, 244, 0.37)', borderRadius: 17 }}>
         <div className="space-y-1">
-          {activeGroups.map(([key, group]) => {
+          {activeGroups.map((group) => {
             const cost = getGroupCost(group);
             return (
-              <div key={key}>
+              <div key={group.key}>
                 <button
-                  onClick={() => toggleGroup(key)}
-                  className="w-full flex items-center justify-between py-2 hover:bg-purple-100 rounded px-2 transition-colors cursor-pointer"
+                  onClick={() => toggleGroup(group.key)}
+                  className="w-full flex items-center justify-between py-2 hover:bg-white/30 rounded px-2 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-medium text-gray-800">
@@ -68,7 +52,7 @@ export default function TotalsSummary({ totals, selectedTactics }) {
                     </span>
                     <ChevronDown
                       className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                        expandedGroups[key] ? "rotate-180" : ""
+                        expandedGroups[group.key] ? "rotate-180" : ""
                       }`}
                     />
                   </div>
@@ -83,21 +67,23 @@ export default function TotalsSummary({ totals, selectedTactics }) {
                   </span>
                 </button>
 
-                {expandedGroups[key] && (
+                {expandedGroups[group.key] && (
                   <div className="pl-4 pb-1">
-                    {group.categories.map((cat) => {
-                      const catTotal = totals.categoryTotals[cat];
-                      if (!catTotal || catTotal.cost === 0) return null;
-                      return (
-                        <div
-                          key={cat}
-                          className="flex justify-between py-1 text-xs text-gray-500"
-                        >
-                          <span>{cat}</span>
-                          <span>${formatCurrency(catTotal.cost)}</span>
-                        </div>
-                      );
-                    })}
+                    {Object.values(selectedTactics)
+                      .filter((entry) => group.types.includes(entry.tactic.Type))
+                      .map((entry) => {
+                        const entryCost = entry.cost || 0;
+                        if (entryCost === 0) return null;
+                        return (
+                          <div
+                            key={entry.tactic.ID}
+                            className="flex justify-between py-1 text-xs text-gray-500"
+                          >
+                            <span>{entry.tactic.displayName || entry.tactic.Name}</span>
+                            <span>${formatCurrency(entryCost)}</span>
+                          </div>
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -106,11 +92,11 @@ export default function TotalsSummary({ totals, selectedTactics }) {
         </div>
 
         {totals.totalSavingsCost > 0 && (
-          <div className="border-t border-purple-200 mt-3 pt-3 flex justify-between items-baseline px-2">
-            <span className="text-sm font-medium text-primary-main">
+          <div className="mt-3 pt-3 flex justify-between items-baseline px-2" style={{ borderTop: '1px solid rgba(230, 231, 244, 0.8)' }}>
+            <span className="text-sm font-bold" style={{ color: '#3D4A97', lineHeight: '130%' }}>
               Total savings
             </span>
-            <span className="text-sm font-bold text-primary-main">
+            <span className="text-sm font-bold" style={{ color: '#3D4A97', lineHeight: '130%' }}>
               ${formatCurrency(totals.totalSavingsCost)}
             </span>
           </div>

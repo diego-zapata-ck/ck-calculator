@@ -430,26 +430,49 @@ export const data = [
     ID: 14,
     Type: "Strategy",
     category: "Strategy",
-    Name: "STRATEGY",
-    displayName: "Strategy",
-    "Base Hours": 0.0,
+    Name: "TESTING PLAN",
+    displayName: "Testing plan",
+    "Base Hours": 10,
     Description:
-      "Prioritize digital experience improvements by categorizing insights, planning conversion goals, and creating a comprehensive, collaborative testing roadmap for quarterly optimization.",
+      "Create a comprehensive testing roadmap that aligns experimentation efforts with business goals and conversion targets.",
     Adjustments: [],
     "Sub-tasks": [],
-    Variants: [
-      {
-        Name: "Small Strategy",
-        Monthly_Hours: 10,
-        Description: "Included as part of execution under 12 months",
-      },
-      {
-        Name: "Large Strategy",
-        Monthly_Hours: 20,
-        Description: "Included as part of execution 12 months or over",
-      },
-
-    ],
+  },
+  {
+    ID: 16,
+    Type: "Strategy",
+    category: "Strategy",
+    Name: "TEST PRIORITISATION",
+    displayName: "Test prioritisation",
+    "Base Hours": 8,
+    Description:
+      "Prioritize tests based on potential impact, implementation effort, and strategic business objectives to maximize ROI.",
+    Adjustments: [],
+    "Sub-tasks": [],
+  },
+  {
+    ID: 17,
+    Type: "Strategy",
+    category: "Strategy",
+    Name: "QUARTERLY PLAN",
+    displayName: "Quarterly plan",
+    "Base Hours": 10,
+    Description:
+      "Develop a quarterly optimization plan with clear milestones, deliverables, and measurable outcomes.",
+    Adjustments: [],
+    "Sub-tasks": [],
+  },
+  {
+    ID: 18,
+    Type: "Strategy",
+    category: "Strategy",
+    Name: "CROPRO DASHBOARD",
+    displayName: "CROpro dashboard",
+    "Base Hours": 5,
+    Description:
+      "Access to the CROpers dashboard for real-time performance tracking, reporting, and experiment management.",
+    Adjustments: [],
+    "Sub-tasks": [],
   },
   {
     ID: 15,
@@ -481,7 +504,6 @@ export const data = [
         Duration_Months: 6,
         Description: "6-month retainer, 80 hours per month",
       },
-
       {
         Name: "12 Months @ 40 hrs/month",
         Monthly_Hours: 40,
@@ -519,5 +541,30 @@ export const data = [
         Description: "24-month retainer, 80 hours per month",
       },
     ],
+  },
+  {
+    ID: 19,
+    Type: "Execution",
+    category: "Experimentation",
+    Name: "RELATIONSHIP",
+    displayName: "Relationship",
+    "Base Hours": 10,
+    Description:
+      "Build and maintain strong client relationships through regular check-ins, progress reviews, and strategic alignment sessions.",
+    Adjustments: [],
+    "Sub-tasks": [],
+  },
+  {
+    ID: 20,
+    Type: "Technology",
+    category: "Experimentation",
+    Name: "OPTIMISATION SOFTWARE",
+    displayName: "Optimisation software",
+    "Base Hours": 0,
+    fixedMonthlyCost: 500,
+    Description:
+      "AB testing and optimisation software tools for running experiments and tracking results.",
+    Adjustments: [],
+    "Sub-tasks": [],
   },
 ];

@@ -39,24 +39,33 @@ export default function OrderSummary({
 
   return (
     <div className="sticky top-8">
-      <div className="bg-white rounded-xl border border-gray-300 shadow-sm p-6">
+      <div className="bg-white p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-tertiary-text">
+          <h2 className="text-lg font-bold" style={{ color: '#171C38' }}>
             Order summary
           </h2>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Show price</span>
+            <span className="text-xs" style={{ color: '#494949' }}>Show price</span>
+            {/* Small toggle — 34.5x18, knob 14x14 */}
             <button
               onClick={() => setShowPrice(!showPrice)}
-              className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors duration-200 cursor-pointer ${
-                showPrice ? "bg-primary-main" : "bg-gray-300"
-              }`}
+              className="relative inline-flex items-center transition-colors duration-200 cursor-pointer"
+              style={{
+                width: 34.5,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: showPrice ? '#25B1A2' : '#E4E4E4',
+              }}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                  showPrice ? "translate-x-5" : "translate-x-1"
-                }`}
+                className="inline-block bg-white shadow transition-transform duration-200"
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 7,
+                  transform: showPrice ? 'translateX(18.5px)' : 'translateX(2px)',
+                }}
               />
             </button>
           </div>
@@ -65,21 +74,19 @@ export default function OrderSummary({
         {/* Savings banner */}
         {totals.totalSavingsCost > 0 && (
           <div
-            className="rounded-xl px-4 py-3 mb-6"
-            style={{ backgroundColor: "rgba(230, 231, 244, 0.55)" }}
+            className="px-4 py-3 mb-6"
+            style={{ backgroundColor: "rgba(230, 231, 244, 0.55)", borderRadius: 12 }}
           >
-            <p className="text-center text-sm text-tertiary-text">
-              <span className="font-bold">
-                ${formatCurrency(totals.totalSavingsCost)}
-              </span>{" "}
-              <span className="font-normal">in total savings</span>
+            <p className="text-center text-sm font-bold" style={{ color: '#3D4A97', lineHeight: '130%' }}>
+              ${formatCurrency(totals.totalSavingsCost)}
+              <span className="font-normal"> in total savings</span>
             </p>
           </div>
         )}
 
         {/* Category groups */}
         <div>
-          {SIDEBAR_GROUPS.map((group, index) => {
+          {SIDEBAR_GROUPS.map((group) => {
             const selectedInGroup = getSelectedInCategories(group.categories);
             const selectedCount = selectedInGroup.length;
             const totalCount = getTotalInCategories(group.categories);
@@ -90,8 +97,7 @@ export default function OrderSummary({
             return (
               <div
                 key={group.label}
-                className="border-b"
-                style={{ borderColor: "rgba(230, 231, 244, 0.6)" }}
+                style={{ borderBottom: '0.5px solid #B5B5B5' }}
               >
                 <button
                   onClick={() => toggleGroup(group.label)}
@@ -99,27 +105,32 @@ export default function OrderSummary({
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-sm font-semibold ${
-                        selectedCount > 0
-                          ? "text-tertiary-text"
-                          : "text-gray-400"
-                      }`}
+                      className="text-sm font-semibold"
+                      style={{
+                        color: selectedCount > 0 ? '#171C38' : '#B7B7B7',
+                      }}
                     >
                       {group.label}
                     </span>
                     {selectedCount > 0 && (
                       <span
-                        className="text-xs text-gray-500 px-2 py-0.5 rounded-full border"
-                        style={{ borderColor: "#E6E7F4" }}
+                        className="text-xs px-2 py-0.5"
+                        style={{
+                          borderRadius: 10.5,
+                          border: '1px solid #E6E7F4',
+                          color: '#494949',
+                        }}
                       >
                         {selectedCount}/{totalCount}
                       </span>
                     )}
                   </div>
                   <ChevronDown
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                    className={`w-4 h-4 transition-transform duration-200 ${
                       isExpanded ? "rotate-180" : ""
                     }`}
+                    style={{ color: '#494949' }}
+                    strokeWidth={1.25}
                   />
                 </button>
 
@@ -131,14 +142,15 @@ export default function OrderSummary({
                         key={entry.tactic.ID}
                         className="flex items-center justify-between py-1.5"
                       >
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm" style={{ color: '#494949' }}>
                           {entry.tactic.displayName || entry.tactic.Name}
                         </span>
                         <button
                           onClick={() =>
                             onRemoveTactic(entry.tactic, entry.config)
                           }
-                          className="p-0.5 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                          className="p-0.5 hover:text-gray-600 transition-colors cursor-pointer"
+                          style={{ color: '#B5B5B5' }}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>

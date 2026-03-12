@@ -18,32 +18,52 @@ export default function Footer({ kickoffDate, onDateChange }) {
 
   return (
     <footer className="mt-10 pt-6 pb-10 space-y-8">
-      <div className="flex items-center justify-between bg-white rounded-xl px-6 py-4 border border-gray-200">
-        <span className="text-sm font-medium text-gray-700">
+      <div
+        className="flex items-center justify-between bg-white px-6"
+        style={{ borderRadius: 20, border: '0.5px solid #DFDFDF', height: 72 }}
+      >
+        <span className="text-sm font-medium" style={{ color: '#171C38' }}>
           Preferred kickoff date
         </span>
-        <div className="relative">
+        <div
+          className="relative"
+          style={{ borderRadius: 12, background: 'rgba(183, 183, 183, 0.11)' }}
+        >
           <input
             type="date"
             value={kickoffDate}
             onChange={(e) => onDateChange(e.target.value)}
-            className="input-field text-sm text-gray-500 pr-10 pl-3 py-2"
+            className="text-sm pr-10 pl-3 py-2 bg-transparent outline-none"
+            style={{ color: '#494949', width: 249, height: 48 }}
             placeholder="DD / MM / YY"
           />
-          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#494949' }} />
         </div>
       </div>
 
       <div className="flex gap-4">
         <button
           onClick={handlePrint}
-          className="px-10 py-3 rounded-full font-semibold text-base btn-primary"
+          className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"
+          style={{
+            width: 166,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: '#25B1A2',
+          }}
         >
           Print quote
         </button>
         <button
           onClick={handleShare}
-          className="px-10 py-3 rounded-full font-semibold text-base border-2 border-tertiary-text text-tertiary-text hover:bg-gray-50 transition-colors cursor-pointer"
+          className="font-semibold text-base cursor-pointer transition-colors duration-200 hover:bg-gray-50"
+          style={{
+            width: 173,
+            height: 55,
+            borderRadius: 27.5,
+            border: '1.5px solid #171C38',
+            color: '#171C38',
+          }}
         >
           Share quote
         </button>

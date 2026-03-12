@@ -21,11 +21,27 @@ function App() {
 
   const [allTacticConfigurations, setAllTacticConfigurations] =
     useState(buildInitialConfigs);
-  const [selectedTactics, setSelectedTactics] = useState({});
+  const [selectedTactics, setSelectedTactics] = useState(() => {
+    const pkg = packages.Pro;
+    const configs = buildInitialConfigs();
+    const initial = {};
+    pkg.serviceIds.forEach((id) => {
+      const service = data.find((t) => t.ID === id);
+      if (service) {
+        const config = configs[id] || {};
+        if (service.Variants?.length > 0 && !config.selectedVariantName) {
+          config.selectedVariantName = service.Variants[0].Name;
+        }
+        const { hours, cost } = calculateTacticCost(service, config);
+        initial[id] = { tactic: service, config, hours, cost };
+      }
+    });
+    return initial;
+  });
   const [discountPercentage] = useState(0);
   const [showPrice, setShowPrice] = useState(true);
   const [kickoffDate, setKickoffDate] = useState("");
-  const [activePackage, setActivePackage] = useState(null);
+  const [activePackage, setActivePackage] = useState("Pro");
 
   const totals = useMemo(
     () => computeTotals(selectedTactics, discountPercentage),
@@ -65,7 +81,6 @@ function App() {
       if (service) {
         const initialConfig = newAllTacticConfigurations[service.ID] || {};
         if (
-          service.Type === "Execution" &&
           service.Variants?.length > 0 &&
           !initialConfig.selectedVariantName
         ) {
@@ -134,25 +149,29 @@ function App() {
               <div
                 className="absolute pointer-events-none"
                 style={{
-                  width: 540,
-                  height: 560,
+                  width: 537,
+                  height: 557,
                   top: -100,
                   right: -150,
-                  background: 'radial-gradient(ellipse at center, rgba(66,142,255,0.12) 0%, transparent 70%)',
-                  filter: 'blur(90px)',
-                  transform: 'rotate(-10deg)',
+                  background: 'linear-gradient(to bottom, rgba(66,142,255,0.5) 0%, rgba(63,38,72,0.23) 100%)',
+                  borderRadius: '50%',
+                  filter: 'blur(95px)',
+                  transform: 'rotate(81deg)',
+                  opacity: 0.5,
                 }}
               />
               <div
                 className="absolute pointer-events-none"
                 style={{
-                  width: 540,
-                  height: 560,
+                  width: 537,
+                  height: 557,
                   bottom: -200,
                   left: -200,
-                  background: 'radial-gradient(ellipse at center, rgba(66,142,255,0.12) 0%, transparent 70%)',
-                  filter: 'blur(90px)',
-                  transform: 'rotate(10deg)',
+                  background: 'linear-gradient(to bottom, rgba(66,142,255,0.5) 0%, rgba(63,38,72,0.23) 100%)',
+                  borderRadius: '50%',
+                  filter: 'blur(95px)',
+                  transform: 'rotate(-80deg)',
+                  opacity: 0.5,
                 }}
               />
               <div className="relative">
@@ -165,19 +184,27 @@ function App() {
             </div>
 
             {/* Show price toggle */}
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 mt-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">Show price</span>
+                <span className="text-sm" style={{ color: '#494949' }}>Show price</span>
                 <button
                   onClick={() => setShowPrice(!showPrice)}
-                  className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
-                    showPrice ? "bg-primary-main" : "bg-gray-300"
-                  }`}
+                  className="relative inline-flex items-center transition-colors duration-200 cursor-pointer"
+                  style={{
+                    width: 46,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: showPrice ? '#25B1A2' : '#E4E4E4',
+                  }}
                 >
                   <span
-                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                      showPrice ? "translate-x-6" : "translate-x-1"
-                    }`}
+                    className="inline-block bg-white shadow transition-transform duration-200"
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 10,
+                      transform: showPrice ? 'translateX(24px)' : 'translateX(2px)',
+                    }}
                   />
                 </button>
               </div>
@@ -230,7 +257,7 @@ function App() {
           </div>
 
           {/* Right column — Order summary sidebar */}
-          <div className="hidden lg:block pt-10">
+          <div className="hidden lg:block pt-10 bg-white min-h-screen">
             <OrderSummary
               showPrice={showPrice}
               setShowPrice={setShowPrice}

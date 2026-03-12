@@ -15,9 +15,9 @@ module.exports = {
           light: 'rgba(227, 90, 117, 0.1)',
         },
         tertiary: {
-          main: '#181b35',
-          light: 'rgba(24, 27, 53, 0.03)',
-          text: '#181b35',
+          main: '#171C38',
+          light: 'rgba(23, 28, 56, 0.03)',
+          text: '#171C38',
         },
       },
     },

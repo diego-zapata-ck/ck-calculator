@@ -69,21 +69,26 @@ export default function ServiceCard({
   };
 
   const Stepper = ({ name, value }) => (
-    <div className="flex items-center gap-0 border border-gray-200 rounded-lg overflow-hidden">
+    <div
+      className="flex items-center bg-white"
+      style={{ borderRadius: 22, border: '0.5px solid #DFDFDF', height: 44, width: 132 }}
+    >
       <button
         onClick={() => handleStepper(name, value, -1)}
-        className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+        className="flex items-center justify-center transition-colors cursor-pointer"
+        style={{ width: 36, height: 36, borderRadius: 18, background: '#F8F8F8', marginLeft: 4 }}
       >
-        <Minus className="w-3.5 h-3.5" />
+        <Minus className="w-3.5 h-3.5 text-gray-500" />
       </button>
-      <span className="px-4 py-1.5 text-sm font-medium text-gray-700 min-w-[2rem] text-center border-x border-gray-200">
+      <span className="flex-1 text-sm font-medium text-gray-700 text-center">
         {value || 0}
       </span>
       <button
         onClick={() => handleStepper(name, value, 1)}
-        className="px-3 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+        className="flex items-center justify-center transition-colors cursor-pointer"
+        style={{ width: 36, height: 36, borderRadius: 18, background: '#F8F8F8', marginRight: 4 }}
       >
-        <Plus className="w-3.5 h-3.5" />
+        <Plus className="w-3.5 h-3.5 text-gray-500" />
       </button>
     </div>
   );
@@ -94,16 +99,25 @@ export default function ServiceCard({
 
   return (
     <div
-      className={`rounded-xl border transition-all duration-200 bg-white ${
-        isSelected
-          ? "border-l-4 border-l-primary-main border-gray-200"
-          : "border-gray-200"
-      }`}
+      className="bg-white transition-all duration-200"
+      style={{
+        borderRadius: 20,
+        border: `0.5px solid ${isSelected ? '#B7B7B7' : '#DFDFDF'}`,
+        ...(expanded && isSelected
+          ? { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }
+          : {}),
+      }}
     >
       {/* Main row */}
-      <div className="flex items-center justify-between px-5 py-4 gap-4">
+      <div
+        className="flex items-center justify-between px-5 gap-4"
+        style={{ height: 72 }}
+      >
         <div className="flex items-center gap-3 flex-grow min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+          <div
+            className="flex items-center justify-center flex-shrink-0"
+            style={{ width: 48, height: 48, borderRadius: 8, background: '#F8F8F8' }}
+          >
             {iconSrc ? (
               <img src={iconSrc} alt={tactic.Name} className="w-6 h-6 object-contain" />
             ) : (
@@ -115,33 +129,43 @@ export default function ServiceCard({
           </span>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 transition-colors cursor-pointer"
+            style={{ color: '#404040' }}
           >
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 ${
                 expanded ? "rotate-180" : ""
               }`}
+              strokeWidth={1.25}
             />
           </button>
         </div>
 
         <div className="flex items-center gap-4 flex-shrink-0">
           {showPrice && (
-            <span className="text-sm font-semibold text-gray-600">
+            <span className="text-sm font-semibold" style={{ color: '#494949' }}>
               +${formatCurrency(displayCost)}
             </span>
           )}
-          {/* Toggle switch */}
+          {/* Toggle switch — 46x24, knob 20x20 */}
           <button
             onClick={() => onToggle(tactic, currentConfig)}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 cursor-pointer ${
-              isSelected ? "bg-primary-main" : "bg-gray-300"
-            }`}
+            className="relative inline-flex items-center transition-colors duration-200 cursor-pointer"
+            style={{
+              width: 46,
+              height: 24,
+              borderRadius: 12,
+              backgroundColor: isSelected ? '#25B1A2' : '#E4E4E4',
+            }}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${
-                isSelected ? "translate-x-6" : "translate-x-1"
-              }`}
+              className="inline-block bg-white shadow transition-transform duration-200"
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                transform: isSelected ? 'translateX(24px)' : 'translateX(2px)',
+              }}
             />
           </button>
         </div>
@@ -149,8 +173,8 @@ export default function ServiceCard({
 
       {/* Expanded content */}
       {expanded && (
-        <div className="px-5 pb-5 pt-1 border-t border-gray-100">
-          <p className="text-sm text-gray-500 mb-3">{tactic.Description}</p>
+        <div className="px-5 pb-5 pt-1">
+          <p className="text-sm mb-3" style={{ color: '#494949' }}>{tactic.Description}</p>
 
           {tactic.Inclusions && (
             <div className="mb-3">
@@ -172,70 +196,77 @@ export default function ServiceCard({
                   ? "Option:"
                   : "Configurable Options:"}
               </h4>
-              {tactic.Adjustments.map((adj, index) => (
-                <div
-                  key={`${tactic.ID}-adj-${index}`}
-                  className="flex flex-col gap-1"
-                >
-                  {adj.Type === "per_unit" &&
-                    adj.Unit !== "additional user journey" && (
+
+              {/* Options area */}
+              <div
+                className="p-4 space-y-3"
+                style={{ borderRadius: 12, border: '0.5px solid #F0F0F0' }}
+              >
+                {tactic.Adjustments.map((adj, index) => (
+                  <div
+                    key={`${tactic.ID}-adj-${index}`}
+                    className="flex flex-col gap-1"
+                  >
+                    {adj.Type === "per_unit" &&
+                      adj.Unit !== "additional user journey" && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm" style={{ color: '#494949' }}>
+                            {adj.Description}
+                          </span>
+                          <Stepper
+                            name={adj.Unit.replace(/\s/g, "")}
+                            value={
+                              currentConfig[adj.Unit.replace(/\s/g, "")] || 0
+                            }
+                          />
+                        </div>
+                      )}
+                    {adj.Type === "threshold" && (
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm" style={{ color: '#494949' }}>
                           {adj.Description}
                         </span>
                         <Stepper
-                          name={adj.Unit.replace(/\s/g, "")}
-                          value={
-                            currentConfig[adj.Unit.replace(/\s/g, "")] || 0
-                          }
+                          name="numLeadGenEvents"
+                          value={currentConfig.numLeadGenEvents ?? 0}
                         />
                       </div>
                     )}
-                  {adj.Type === "threshold" && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        {adj.Description}
-                      </span>
-                      <Stepper
-                        name="numLeadGenEvents"
-                        value={currentConfig.numLeadGenEvents ?? 0}
-                      />
-                    </div>
-                  )}
-                  {adj.Type === "fixed_increase" && (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        id={`${tactic.ID}-${adj.Condition}`}
-                        name={adj.Condition}
-                        checked={currentConfig[adj.Condition] || false}
-                        onChange={handleInputChange}
-                        className="h-4 w-4 text-primary-main border-gray-300 rounded focus:ring-primary-main cursor-pointer"
-                      />
-                      <label
-                        htmlFor={`${tactic.ID}-${adj.Condition}`}
-                        className="text-sm text-gray-700 cursor-pointer"
-                      >
-                        {adj.Description}
-                      </label>
-                    </div>
-                  )}
-                  {tactic.ID === 13 &&
-                    adj.Unit === "additional user journey" && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
+                    {adj.Type === "fixed_increase" && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`${tactic.ID}-${adj.Condition}`}
+                          name={adj.Condition}
+                          checked={currentConfig[adj.Condition] || false}
+                          onChange={handleInputChange}
+                          className="h-4 w-4 text-primary-main border-gray-300 rounded focus:ring-primary-main cursor-pointer"
+                        />
+                        <label
+                          htmlFor={`${tactic.ID}-${adj.Condition}`}
+                          className="text-sm text-gray-700 cursor-pointer"
+                        >
                           {adj.Description}
-                        </span>
-                        <Stepper
-                          name="numAdditionalUserJourneysMeclabs"
-                          value={
-                            currentConfig.numAdditionalUserJourneysMeclabs || 0
-                          }
-                        />
+                        </label>
                       </div>
                     )}
-                </div>
-              ))}
+                    {tactic.ID === 13 &&
+                      adj.Unit === "additional user journey" && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm" style={{ color: '#494949' }}>
+                            {adj.Description}
+                          </span>
+                          <Stepper
+                            name="numAdditionalUserJourneysMeclabs"
+                            value={
+                              currentConfig.numAdditionalUserJourneysMeclabs || 0
+                            }
+                          />
+                        </div>
+                      )}
+                  </div>
+                ))}
+              </div>
 
               {tactic.Variants && tactic.Variants.length > 0 && (
                 <div className="mt-3">

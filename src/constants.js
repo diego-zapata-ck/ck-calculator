@@ -2,22 +2,29 @@ import { data } from "./data";
 
 export const HOURLY_RATE = 240;
 
+const ICON_DIR = "/icons/[CK] Service Cost Calculator";
+
 export const TACTIC_ICONS = {
-  1: "/icons/onboarding.png",
-  2: "/icons/technical-audit.png",
-  3: "/icons/ga-audit.png",
-  4: "/icons/baseline-performance.png",
-  5: "/icons/customer-survey.png",
-  6: "/icons/user-journey.png",
-  7: "/icons/ux-review.png",
-  8: "/icons/search-merch.png",
-  9: "/icons/usability-studies.png",
-  10: "/icons/session-recording.png",
-  11: "/icons/competitor-review.png",
-  12: "/icons/info-architecture.png",
-  13: "/icons/conversion-review.png",
-  14: "/icons/strategy.png",
-  15: "/icons/experimentation.png",
+  1: `${ICON_DIR}/image 65.png`,
+  2: `${ICON_DIR}/image 50.png`,
+  3: `${ICON_DIR}/image 51.png`,
+  4: `${ICON_DIR}/image 52.png`,
+  5: `${ICON_DIR}/image 58.png`,
+  6: `${ICON_DIR}/image 64.png`,
+  7: `${ICON_DIR}/image 54.png`,
+  8: `${ICON_DIR}/image 55.png`,
+  9: `${ICON_DIR}/image 59.png`,
+  10: `${ICON_DIR}/image 60.png`,
+  11: `${ICON_DIR}/image 62.png`,
+  12: `${ICON_DIR}/image 61.png`,
+  13: `${ICON_DIR}/image 63.png`,
+  14: `${ICON_DIR}/image 61-1.png`,
+  15: `${ICON_DIR}/image 67.png`,
+  16: `${ICON_DIR}/image 61-2.png`,
+  17: `${ICON_DIR}/image 62-1.png`,
+  18: `${ICON_DIR}/image 66.png`,
+  19: `${ICON_DIR}/image 67-1.png`,
+  20: `${ICON_DIR}/image 67-2.png`,
 };
 
 export const COMMON_SUBTASK_NAMES = [
@@ -58,9 +65,6 @@ export const getCroVariantDiscount = (duration, monthlyHours) => {
   return 0;
 };
 
-export const STRATEGY_TACTIC_ID = 14;
-export const EXECUTION_TACTIC_ID = 15;
-
 export const CATEGORY_ORDER = [
   "Account & project management",
   "Technical review",
@@ -79,23 +83,17 @@ export const categorizedData = data.reduce((acc, service) => {
   return acc;
 }, {});
 
-const executionTactic = data.find((t) => t.Type === "Execution");
-export const executionOptions = {
-  Monthly_Hours: [...new Set(executionTactic.Variants.map((v) => v.Monthly_Hours))].sort((a, b) => a - b),
-  Duration_Months: [...new Set(executionTactic.Variants.map((v) => v.Duration_Months))].sort((a, b) => a - b),
-};
-
 export const packages = {
   Essentials: {
     name: "Essentials",
     description: "Best for companies with smaller budgets",
-    serviceIds: [1, 4, 7, 13, 14, 15],
+    serviceIds: [1, 4, 7, 13, 14, 15, 20],
   },
   Pro: {
     name: "Pro",
     popular: true,
     description: "Best for medium-sized companies",
-    serviceIds: [1, 2, 3, 4, 6, 7, 13, 14, 15],
+    serviceIds: [1, 2, 3, 4, 6, 7, 13, 14, 16, 15, 19, 20],
   },
   Enterprise: {
     name: "Enterprise",
@@ -122,7 +120,7 @@ export const buildInitialConfigs = () => {
     if (service.ID === 13) config.numAdditionalUserJourneysMeclabs = 0;
 
     if (
-      (service.Type === "Strategy" || service.Type === "Execution") &&
+      service.Type === "Execution" &&
       service.Variants &&
       service.Variants.length > 0
     ) {
@@ -141,10 +139,15 @@ export const formatHoursToMinutes = (decimalHours) => {
 };
 
 export const formatCurrency = (amount) =>
-  amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  Math.round(amount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
 
 export const calculateTacticCost = (tactic, config) => {
+  // Fixed monthly cost services (e.g. Optimisation software)
+  if (tactic.fixedMonthlyCost) {
+    return { hours: 0, cost: tactic.fixedMonthlyCost };
+  }
+
   let currentHours = tactic["Base Hours"];
   let variantDiscountPct = 0;
 
@@ -170,8 +173,6 @@ export const calculateTacticCost = (tactic, config) => {
     if (selected) {
       if (tactic.ID === 9) {
         currentHours += selected.Hours_Increase;
-      } else if (tactic.Type === "Strategy") {
-        currentHours = selected.Monthly_Hours;
       } else if (tactic.Type === "Execution") {
         currentHours = selected.Monthly_Hours * selected.Duration_Months;
         variantDiscountPct = getCroVariantDiscount(
@@ -200,6 +201,7 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
     categoryTotals[cat] = { hours: 0, cost: 0 };
   });
 
+  const typeTotals = {};
   const seenSubtasks = new Set();
   let retainerDiscount = 0;
 
@@ -220,6 +222,12 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
       categoryTotals[cat].hours += itemHours;
       categoryTotals[cat].cost += itemCost;
     }
+
+    const type = entry.tactic.Type;
+    if (!typeTotals[type]) typeTotals[type] = { hours: 0, cost: 0 };
+    typeTotals[type].hours += itemHours;
+    typeTotals[type].cost += itemCost;
+
     totalHoursBeforeAllSavings += itemHours;
     totalCostBeforeAllSavings += itemCost;
 
@@ -254,5 +262,6 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
     generalDiscountValue,
     auditingCommonSubtaskSavingsCostDisplay: sharedTaskCostSaved,
     categoryTotals,
+    typeTotals,
   };
 };

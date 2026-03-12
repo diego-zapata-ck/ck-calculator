@@ -11,9 +11,9 @@
   --color-secondary-dark: rgb(197, 78, 101);
   --color-secondary-light: rgba(227, 90, 117, 0.1);
 
-  --color-tertiary-main: #181b35;
-  --color-tertiary-light: rgba(24, 27, 53, 0.03);
-  --color-tertiary-text: #181b35;
+  --color-tertiary-main: #171C38;
+  --color-tertiary-light: rgba(23, 28, 56, 0.03);
+  --color-tertiary-text: #171C38;
 }
 
 html, body, #root {
