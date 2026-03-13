@@ -10,7 +10,7 @@ export default function Footer({ kickoffDate, onDateChange }) {
       navigator.share({
         title: "Service Cost Calculator Quote",
         url: window.location.href,
-      });
+      }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
@@ -32,6 +32,7 @@ export default function Footer({ kickoffDate, onDateChange }) {
           <input
             type="date"
             value={kickoffDate}
+            min={new Date().toISOString().split('T')[0]}
             onChange={(e) => onDateChange(e.target.value)}
             className="text-sm pr-10 pl-3 py-2 bg-transparent outline-none"
             style={{ color: '#494949', width: 249, height: 48 }}
@@ -41,7 +42,7 @@ export default function Footer({ kickoffDate, onDateChange }) {
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 print-hide">
         <button
           onClick={handlePrint}
           className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"

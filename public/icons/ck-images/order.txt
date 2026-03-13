@@ -1,0 +1,37 @@
+Structure, service and images related:
+
+Account & project management
+-Onboarding: image 65
+
+Technical review
+-Technical audit:image 50
+
+Data analysis
+-Google Analytics audit:image 51
+-User journey & data analysis:image 64
+-Baseline performance:image 52
+
+UX fundamentals
+-UX/UI review:image 54
+-Search & merch review:image 55
+
+Customer insights
+-Usability studies:image 59
+-Customer survey & NPS:image 58
+-Session recordings:image 60
+-Competitor review:image 62
+-Information architecture:image 61
+
+Conversion
+-Conversion review:image 63
+
+Strategy
+-Testing plan:image 61-1
+-Test prioritisation:image 61-2
+-Quarterly plan:image 62-1
+-CROpro dashboard:image 66
+
+Experimentation
+-Execution:image 67
+-Relationship:image 67-1
+-Optimisation software:image 67-2

@@ -21,6 +21,7 @@ function App() {
   const [selectedTactics, setSelectedTactics] = useState({});
   const [discountPercentage] = useState(0);
   const [showPrice, setShowPrice] = useState(true);
+  const [showHours, setShowHours] = useState(false);
   const [kickoffDate, setKickoffDate] = useState("");
   const [activePackage, setActivePackage] = useState(null);
 
@@ -157,39 +158,38 @@ function App() {
               />
               <div className="relative">
                 <Header />
-                <PackageSelector
+                <div className="print-hide"><PackageSelector
                   activePackage={activePackage}
                   onSelectPackage={handleSelectPackage}
-                />
+                /></div>
                 <div className="pb-8" />
               </div>
             </div>
 
-            {/* Show price toggle */}
-            <div className="flex justify-end mb-4 mt-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm" style={{ color: '#494949' }}>Show price</span>
-                <button
-                  onClick={() => setShowPrice(!showPrice)}
-                  className="relative inline-flex items-center transition-colors duration-200 cursor-pointer"
-                  style={{
-                    width: 46,
-                    height: 24,
-                    borderRadius: 12,
-                    backgroundColor: showPrice ? '#25B1A2' : '#E4E4E4',
-                  }}
-                >
-                  <span
-                    className="inline-block bg-white shadow transition-transform duration-200"
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 10,
-                      transform: showPrice ? 'translateX(24px)' : 'translateX(2px)',
-                    }}
-                  />
-                </button>
-              </div>
+            {/* Show/Hide cost & hours buttons */}
+            <div className="flex gap-3 mb-4 mt-4 print-hide">
+              <button
+                onClick={() => setShowPrice(!showPrice)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200"
+                style={{
+                  backgroundColor: showPrice ? '#25B1A2' : 'white',
+                  color: showPrice ? 'white' : '#494949',
+                  border: showPrice ? '1.5px solid #25B1A2' : '1.5px solid #DFDFDF',
+                }}
+              >
+                {showPrice ? 'Hide costs' : 'Show costs'}
+              </button>
+              <button
+                onClick={() => setShowHours(!showHours)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200"
+                style={{
+                  backgroundColor: showHours ? '#25B1A2' : 'white',
+                  color: showHours ? 'white' : '#494949',
+                  border: showHours ? '1.5px solid #25B1A2' : '1.5px solid #DFDFDF',
+                }}
+              >
+                {showHours ? 'Hide hours' : 'Show hours'}
+              </button>
             </div>
 
             {/* Service categories */}
@@ -221,6 +221,7 @@ function App() {
                             allTacticConfigurations[service.ID] || {}
                           }
                           showPrice={showPrice}
+                          showHours={showHours}
                         />
                       ))}
                     </div>

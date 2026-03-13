@@ -2,7 +2,7 @@ import { data } from "./data";
 
 export const HOURLY_RATE = 240;
 
-const ICON_DIR = "/icons/[CK] Service Cost Calculator";
+const ICON_DIR = "/icons/ck-images";
 
 export const TACTIC_ICONS = {
   1: `${ICON_DIR}/image 65.png`,
@@ -152,18 +152,27 @@ export const calculateTacticCost = (tactic, config) => {
   let variantDiscountPct = 0;
 
   if (tactic.Adjustments) {
-    tactic.Adjustments.forEach((adj) => {
-      if (adj.Type === "per_unit") {
-        const configKey = adj.Unit.replace(/\s/g, "");
-        if (tactic.ID === 13 && adj.Unit === "additional user journey") {
-          currentHours += (config.numAdditionalUserJourneysMeclabs || 0) * 1;
-        } else if (config[configKey] !== undefined) {
-          currentHours += config[configKey] * adj.Hours_Per_Unit;
+    if (tactic.ID === 13) {
+      // Conversion review: multiplicative personas × journeys
+      // Base includes 2 personas and 2 journeys (4 combinations)
+      const extraPersonas = config.additionalpersona || 0;
+      const extraJourneys = config.numAdditionalUserJourneysMeclabs || 0;
+      const totalCombinations = (2 + extraPersonas) * (2 + extraJourneys);
+      const baseCombinations = 4; // 2 × 2
+      const additionalCombinations = totalCombinations - baseCombinations;
+      currentHours += additionalCombinations * 1; // 1 hour per additional combination
+    } else {
+      tactic.Adjustments.forEach((adj) => {
+        if (adj.Type === "per_unit") {
+          const configKey = adj.Unit.replace(/\s/g, "");
+          if (config[configKey] !== undefined) {
+            currentHours += config[configKey] * adj.Hours_Per_Unit;
+          }
+        } else if (adj.Type === "fixed_increase" && config[adj.Condition]) {
+          currentHours += adj.Hours_Increase;
         }
-      } else if (adj.Type === "fixed_increase" && config[adj.Condition]) {
-        currentHours += adj.Hours_Increase;
-      }
-    });
+      });
+    }
   }
 
   if (tactic.Variants && config.selectedVariantName) {

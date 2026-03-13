@@ -13,6 +13,7 @@ import {
   TACTIC_ICONS,
   getCroVariantDiscount,
   formatCurrency,
+  formatHoursToMinutes,
   calculateTacticCost,
 } from "../constants";
 
@@ -23,12 +24,13 @@ export default function ServiceCard({
   onConfigChange,
   currentConfig,
   showPrice,
+  showHours,
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const { cost: displayCost } = useMemo(() => {
+  const { cost: displayCost, hours: displayHours } = useMemo(() => {
     if (!tactic) return { hours: 0, cost: 0 };
-    if (Object.keys(currentConfig).length === 0 && !tactic.Variants) {
+    if (Object.keys(currentConfig).length === 0 && !tactic.Variants && !tactic.fixedMonthlyCost) {
       return {
         hours: tactic["Base Hours"],
         cost: tactic["Base Hours"] * HOURLY_RATE,
@@ -135,15 +137,22 @@ export default function ServiceCard({
         </div>
 
         <div className="flex items-center gap-4 flex-shrink-0">
-          {showPrice && (
-            <span className="text-sm font-semibold" style={{ color: '#494949' }}>
-              +${formatCurrency(displayCost)}{tactic.fixedMonthlyCost ? '/mo' : ''}
-            </span>
-          )}
+          <div className="flex flex-col items-end">
+            {showPrice && (
+              <span className="text-sm font-semibold" style={{ color: '#494949' }}>
+                +${formatCurrency(displayCost)}{tactic.fixedMonthlyCost ? '/mo' : ''}
+              </span>
+            )}
+            {showHours && !tactic.fixedMonthlyCost && (
+              <span className="text-xs" style={{ color: '#25B1A2' }}>
+                {formatHoursToMinutes(displayHours)}
+              </span>
+            )}
+          </div>
           {/* Toggle switch — 46x24, knob 20x20 */}
           <button
             onClick={() => onToggle(tactic, currentConfig)}
-            className="relative inline-flex items-center transition-colors duration-200 cursor-pointer"
+            className="relative inline-flex items-center transition-colors duration-200 cursor-pointer print-hide"
             style={{
               width: 46,
               height: 24,
@@ -167,6 +176,12 @@ export default function ServiceCard({
       {/* Expanded content */}
       {expanded && (
         <div className="px-5 pb-4 pt-1">
+          {/* Description */}
+          {tactic.Description && (
+            <p className="text-sm mb-3" style={{ color: '#494949', lineHeight: '1.5' }}>
+              {tactic.Description}
+            </p>
+          )}
           {/* Compact adjustment controls */}
           {tactic.Adjustments && tactic.Adjustments.length > 0 && (
             <div className="space-y-2">
