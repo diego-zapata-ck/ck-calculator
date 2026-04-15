@@ -47,6 +47,11 @@ export const COMMON_SUBTASK_NAMES = [
 ];
 
 export const getCroVariantDiscount = (duration, monthlyHours) => {
+  if (duration === 3) {
+    if (monthlyHours === 40) return -0.025;
+    if (monthlyHours === 60) return -0.01;
+    if (monthlyHours === 80) return 0;
+  }
   if (duration === 6) {
     if (monthlyHours === 40) return 0;
     if (monthlyHours === 60) return 0.01;

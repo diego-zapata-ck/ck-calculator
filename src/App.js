@@ -14,6 +14,7 @@ import ServiceCard from "./components/ServiceCard";
 import OrderSummary from "./components/OrderSummary";
 import TotalsSummary from "./components/TotalsSummary";
 import Footer from "./components/Footer";
+import PrintQuote from "./components/PrintQuote";
 
 function App() {
   const [allTacticConfigurations, setAllTacticConfigurations] =
@@ -24,6 +25,7 @@ function App() {
   const [showHours, setShowHours] = useState(false);
   const [kickoffDate, setKickoffDate] = useState("");
   const [activePackage, setActivePackage] = useState(null);
+  const [showQuote, setShowQuote] = useState(false);
 
   const totals = useMemo(
     () => computeTotals(selectedTactics, discountPercentage),
@@ -116,7 +118,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8${showQuote ? ' print-main-content' : ''}`}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column */}
           <div className="lg:col-span-2">
@@ -238,7 +240,7 @@ function App() {
               />
             )}
 
-            <Footer kickoffDate={kickoffDate} onDateChange={setKickoffDate} />
+            <Footer kickoffDate={kickoffDate} onDateChange={setKickoffDate} onQuote={() => setShowQuote(true)} />
           </div>
 
           {/* Right column — Order summary sidebar */}
@@ -253,6 +255,14 @@ function App() {
           </div>
         </div>
       </div>
+      {showQuote && (
+        <PrintQuote
+          selectedTactics={selectedTactics}
+          totals={totals}
+          kickoffDate={kickoffDate}
+          onClose={() => setShowQuote(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Calendar } from "lucide-react";
 
-export default function Footer({ kickoffDate, onDateChange }) {
+export default function Footer({ kickoffDate, onDateChange, onQuote }) {
   const handlePrint = () => {
     window.print();
   };
@@ -54,6 +54,18 @@ export default function Footer({ kickoffDate, onDateChange }) {
           }}
         >
           Print quote
+        </button>
+        <button
+          onClick={onQuote}
+          className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"
+          style={{
+            width: 200,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: '#3D4A97',
+          }}
+        >
+          Preview quote
         </button>
         <button
           onClick={handleShare}

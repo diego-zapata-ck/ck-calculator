@@ -70,7 +70,7 @@ body {
 @media print {
   @page {
     size: A4;
-    margin: 15mm 12mm;
+    margin: 18mm 16mm;
   }
 
   html, body, #root {
@@ -80,69 +80,26 @@ body {
 
   body {
     background: white !important;
-    font-size: 11px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
 
-  .no-print,
-  footer button,
   .print-hide {
     display: none !important;
   }
 
-  .print-show {
-    display: block !important;
-  }
-
-  /* Flatten to single column */
-  .grid.lg\:grid-cols-3 {
-    display: block !important;
-  }
-
-  /* Hide sidebar in print — order summary */
-  .hidden.lg\:block {
+  /* Hide main content when quote overlay is printing */
+  .print-main-content {
     display: none !important;
   }
 
-  /* Remove header gradient decorations */
-  .relative.overflow-hidden {
-    background: none !important;
+  .print-quote-view {
+    position: static !important;
     overflow: visible !important;
   }
-  .relative.overflow-hidden > .absolute {
-    display: none !important;
-  }
 
-  /* Remove min-height constraints */
-  .min-h-screen {
-    min-height: auto !important;
-  }
-
-  /* Remove max-width to use full page */
-  .max-w-7xl {
+  .print-quote-view .print-content {
     max-width: 100% !important;
-    padding: 0 !important;
-  }
-
-  /* Ensure cards don't break across pages */
-  section {
-    break-inside: avoid;
-  }
-
-  /* Keep service cards compact */
-  [style*="borderRadius: 20"] {
-    box-shadow: none !important;
-    border: 0.5px solid #DFDFDF !important;
-  }
-
-  /* Remove sticky positioning */
-  .sticky {
-    position: static !important;
-  }
-
-  /* Ensure Investment section stays together */
-  .print-keep-together {
-    break-inside: avoid;
+    padding: 0 10mm !important;
   }
 }

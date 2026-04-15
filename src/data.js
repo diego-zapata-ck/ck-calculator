@@ -402,13 +402,13 @@ export const data = [
         Type: "per_unit",
         Unit: "additional persona",
         Hours_Per_Unit: 1,
-        Description: "Add additional personas to analyse",
+        Description: "Extra personas to analyse (2 included)",
       },
       {
         Type: "per_unit",
         Unit: "additional user journey",
         Hours_Per_Unit: 1,
-        Description: "Add additional user journey to analyse",
+        Description: "Extra user journeys to analyse (2 included)",
       },
     ],
     "Sub-tasks": [
@@ -486,6 +486,25 @@ export const data = [
     Adjustments: [],
     "Sub-tasks": [],
     Variants: [
+      {
+        Name: "3 Months @ 40 hrs/month",
+        Monthly_Hours: 40,
+        Duration_Months: 3,
+        Description: "3-month retainer, 40 hours per month",
+      },
+      {
+        Name: "3 Months @ 60 hrs/month",
+        Monthly_Hours: 60,
+        Duration_Months: 3,
+        Description: "3-month retainer, 60 hours per month",
+      },
+      {
+        Name: "3 Months @ 80 hrs/month",
+        Monthly_Hours: 80,
+        Duration_Months: 3,
+        Description: "3-month retainer, 80 hours per month",
+      },
+
       {
         Name: "6 Months @ 40 hrs/month",
         Monthly_Hours: 40,

@@ -378,10 +378,10 @@ export default function ServiceCard({
                             </span>
                           )}
                         </div>
-                        {discountRate > 0 && (
+                        {discountRate !== 0 && (
                           <p className="text-xs text-green-600 font-semibold mt-1">
-                            Save ${formatCurrency(discountAmount)} (
-                            {Math.round(discountRate * 100)}%)
+                            Save ${formatCurrency(Math.abs(discountAmount))} (
+                            {parseFloat((Math.abs(discountRate) * 100).toFixed(1))}%)
                           </p>
                         )}
                         {variant.Duration_Months && (
