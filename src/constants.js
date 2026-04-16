@@ -180,6 +180,9 @@ export const calculateTacticCost = (tactic, config) => {
     }
   }
 
+  let monthlyHours = null;
+  let durationMonths = null;
+
   if (tactic.Variants && config.selectedVariantName) {
     const selected = tactic.Variants.find(
       (v) => v.Name === config.selectedVariantName
@@ -188,10 +191,12 @@ export const calculateTacticCost = (tactic, config) => {
       if (tactic.ID === 9) {
         currentHours += selected.Hours_Increase;
       } else if (tactic.Type === "Execution") {
-        currentHours = selected.Monthly_Hours * selected.Duration_Months;
+        monthlyHours = selected.Monthly_Hours;
+        durationMonths = selected.Duration_Months;
+        currentHours = monthlyHours * durationMonths;
         variantDiscountPct = getCroVariantDiscount(
-          selected.Duration_Months,
-          selected.Monthly_Hours
+          durationMonths,
+          monthlyHours
         );
       }
     }
@@ -200,7 +205,16 @@ export const calculateTacticCost = (tactic, config) => {
   let currentCost = currentHours * HOURLY_RATE;
   currentCost *= 1 - variantDiscountPct;
 
-  return { hours: currentHours, cost: currentCost };
+  const result = { hours: currentHours, cost: currentCost };
+
+  // For Execution types, also return monthly breakdown
+  if (durationMonths) {
+    result.monthlyCost = currentCost / durationMonths;
+    result.durationMonths = durationMonths;
+    result.monthlyHours = monthlyHours;
+  }
+
+  return result;
 };
 
 
@@ -219,13 +233,25 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
   const seenSubtasks = new Set();
   let retainerDiscount = 0;
 
+  // Find execution term for Technology cost calculation
+  let executionTermMonths = 1;
+  Object.values(selectedTactics).forEach((entry) => {
+    if (entry?.tactic?.Type === "Execution" && entry.tactic.Variants?.length > 0 && entry.config?.selectedVariantName) {
+      const variant = entry.tactic.Variants.find((v) => v.Name === entry.config.selectedVariantName);
+      if (variant?.Duration_Months) executionTermMonths = variant.Duration_Months;
+    }
+  });
+
   Object.values(selectedTactics).forEach((entry) => {
     if (!entry || !entry.tactic) return;
 
-    const { hours: itemHours, cost: itemCost } = calculateTacticCost(
-      entry.tactic,
-      entry.config,
-    );
+    const tacticResult = calculateTacticCost(entry.tactic, entry.config);
+    let { hours: itemHours, cost: itemCost } = tacticResult;
+
+    // Technology cost = monthly × execution term
+    if (entry.tactic.fixedMonthlyCost) {
+      itemCost = entry.tactic.fixedMonthlyCost * executionTermMonths;
+    }
 
     if (entry.tactic.Type === "Execution") {
       retainerDiscount += itemHours * HOURLY_RATE - itemCost;
@@ -238,9 +264,14 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
     }
 
     const type = entry.tactic.Type;
-    if (!typeTotals[type]) typeTotals[type] = { hours: 0, cost: 0 };
+    if (!typeTotals[type]) typeTotals[type] = { hours: 0, cost: 0, monthlyCost: 0 };
     typeTotals[type].hours += itemHours;
     typeTotals[type].cost += itemCost;
+    if (tacticResult.monthlyCost) {
+      typeTotals[type].monthlyCost += tacticResult.monthlyCost;
+    } else if (entry.tactic.fixedMonthlyCost) {
+      typeTotals[type].monthlyCost += entry.tactic.fixedMonthlyCost;
+    }
 
     totalHoursBeforeAllSavings += itemHours;
     totalCostBeforeAllSavings += itemCost;

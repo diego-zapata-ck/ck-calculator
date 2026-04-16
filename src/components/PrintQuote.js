@@ -1,10 +1,9 @@
-import { formatCurrency, formatHoursToMinutes } from "../constants";
+import { formatCurrency, formatHoursToMinutes, calculateTacticCost } from "../constants";
 
 const INVESTMENT_GROUPS = [
   { key: "Auditing", label: "Auditing", types: ["Auditing"] },
   { key: "Strategy", label: "Strategy", types: ["Strategy"] },
-  { key: "Execution", label: "Execution", types: ["Execution"], suffix: "/ month" },
-  { key: "Technology", label: "Technology", types: ["Technology"], suffix: "/ month" },
+  { key: "Execution", label: "Execution", types: ["Execution", "Technology"], suffix: "/ month" },
 ];
 
 function getItemDetail(entry) {
@@ -81,7 +80,7 @@ function getGroupDetail(group, items) {
   return null;
 }
 
-export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClose }) {
+export default function PrintQuote({ selectedTactics, totals, kickoffDate, clientDetails, onClose }) {
   const today = new Date().toLocaleDateString("en-AU", {
     day: "numeric",
     month: "long",
@@ -91,7 +90,13 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
   const getGroupCost = (group) => {
     let cost = 0;
     group.types.forEach((type) => {
-      if (totals.typeTotals?.[type]) cost += totals.typeTotals[type].cost;
+      if (totals.typeTotals?.[type]) {
+        if (group.suffix && totals.typeTotals[type].monthlyCost) {
+          cost += totals.typeTotals[type].monthlyCost;
+        } else {
+          cost += totals.typeTotals[type].cost;
+        }
+      }
     });
     return cost;
   };
@@ -139,9 +144,30 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
           </div>
         </div>
 
+        {/* Client details */}
+        {(clientDetails?.name || clientDetails?.website) && (
+          <div className="mt-4 mb-2">
+            {clientDetails.name && (
+              <p className="text-base font-bold" style={{ color: "#171C38" }}>
+                {clientDetails.name}
+              </p>
+            )}
+            {clientDetails.website && (
+              <p className="text-sm" style={{ color: "#494949" }}>
+                {clientDetails.website}
+              </p>
+            )}
+            {clientDetails.brief && (
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: "#B7B7B7" }}>
+                {clientDetails.brief}
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Title bar */}
         <div
-          className="mt-6 mb-8 px-6 py-5"
+          className="mt-4 mb-8 px-6 py-5"
           style={{
             background: "linear-gradient(135deg, #171C38 0%, #2A3158 100%)",
             borderRadius: 14,
@@ -176,9 +202,13 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
         <div className="mb-6">
           {activeGroups.map((group, groupIdx) => {
             const cost = getGroupCost(group);
-            const items = Object.values(selectedTactics).filter((e) =>
-              group.types.includes(e.tactic.Type)
-            );
+            const items = Object.values(selectedTactics).filter((e) => {
+              // Flat Execution services (Relationship) go under Strategy
+              if (e.tactic.Type === "Execution" && !e.tactic.Variants?.length) {
+                return group.key === "Strategy";
+              }
+              return group.types.includes(e.tactic.Type);
+            });
             const groupDetail = getGroupDetail(group, items);
 
             return (
@@ -217,6 +247,13 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
                 {/* Line items */}
                 {items.map((e) => {
                   const detail = getItemDetail(e);
+                  const tacticResult = calculateTacticCost(e.tactic, e.config);
+                  let lineCost = tacticResult.cost;
+                  if (group.suffix && tacticResult.monthlyCost) {
+                    lineCost = tacticResult.monthlyCost;
+                  } else if (group.suffix && e.tactic.fixedMonthlyCost) {
+                    lineCost = e.tactic.fixedMonthlyCost;
+                  }
                   return (
                     <div
                       key={e.tactic.ID}
@@ -234,7 +271,7 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
                         )}
                       </div>
                       <span className="text-sm flex-shrink-0" style={{ color: "#494949" }}>
-                        ${formatCurrency(e.cost || 0)}
+                        ${formatCurrency(lineCost)}
                       </span>
                     </div>
                   );
@@ -269,24 +306,88 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, onClo
           </div>
         )}
 
-        {/* ── Grand Total ── */}
-        <div
-          className="flex justify-between items-center px-5 py-4 mb-10"
-          style={{
-            background: "#25B1A2",
-            borderRadius: 10,
-          }}
-        >
-          <span
-            className="text-sm font-bold text-white"
-            style={{ fontFamily: "Lato, sans-serif" }}
-          >
-            Total investment
-          </span>
-          <span className="text-lg font-bold text-white">
-            ${formatCurrency(totals.totalCost)}
-          </span>
-        </div>
+        {/* ── Summary ── */}
+        {(() => {
+          const auditingRaw = totals.typeTotals?.Auditing?.cost || 0;
+          const auditSavings = totals.auditingCommonSubtaskSavingsCostDisplay || 0;
+          const auditingCost = auditingRaw - auditSavings;
+          const strategyCost = totals.typeTotals?.Strategy?.cost || 0;
+          const executionMonthly = (totals.typeTotals?.Execution?.monthlyCost || 0) + (totals.typeTotals?.Technology?.monthlyCost || 0);
+          const relationshipCost = Object.values(selectedTactics)
+            .filter((e) => e.tactic.Type === "Execution" && !e.tactic.Variants?.length)
+            .reduce((sum, e) => sum + (e.cost || 0), 0);
+
+          let executionTerm = null;
+          const execEntry = Object.values(selectedTactics).find(
+            (e) => e.tactic.Type === "Execution" && e.tactic.Variants?.length > 0
+          );
+          if (execEntry?.config?.selectedVariantName) {
+            const variant = execEntry.tactic.Variants.find(
+              (v) => v.Name === execEntry.config.selectedVariantName
+            );
+            if (variant) executionTerm = variant.Duration_Months;
+          }
+
+          return (
+            <div
+              className="px-5 py-4 mb-10 space-y-2"
+              style={{ background: "rgba(37, 177, 162, 0.08)", borderRadius: 10, border: "1px solid rgba(37, 177, 162, 0.2)" }}
+            >
+              {auditingCost > 0 && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm" style={{ color: "#494949" }}>Auditing</span>
+                  <span className="text-sm font-bold" style={{ color: "#171C38" }}>
+                    ${formatCurrency(auditingCost)}
+                  </span>
+                </div>
+              )}
+              {(strategyCost + relationshipCost) > 0 && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm" style={{ color: "#494949" }}>
+                    Strategy <span className="text-xs" style={{ color: "#B7B7B7" }}>(Per Annum)</span>
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: "#171C38" }}>
+                    ${formatCurrency(strategyCost + relationshipCost)}
+                  </span>
+                </div>
+              )}
+              {executionMonthly > 0 && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm" style={{ color: "#494949" }}>
+                    Execution <span className="text-xs" style={{ color: "#B7B7B7" }}>(Monthly)</span>
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: "#171C38" }}>
+                    ${formatCurrency(executionMonthly)} / month
+                  </span>
+                </div>
+              )}
+              {executionTerm && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm" style={{ color: "#494949" }}>
+                    Execution Term <span className="text-xs" style={{ color: "#B7B7B7" }}>(Months)</span>
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: "#171C38" }}>
+                    {executionTerm}
+                  </span>
+                </div>
+              )}
+              <div
+                className="flex justify-between items-baseline pt-2 mt-1"
+                style={{ borderTop: "1px solid rgba(37, 177, 162, 0.3)" }}
+              >
+                <span
+                  className="text-sm font-bold"
+                  style={{ fontFamily: "Lato, sans-serif", color: "#25B1A2" }}
+                >
+                  Total investment
+                </span>
+                <span className="text-lg font-bold" style={{ color: "#25B1A2" }}>
+                  ${formatCurrency(totals.totalCost)}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── Footer ── */}
         <div className="text-center pt-6" style={{ borderTop: "0.5px solid #E4E4E4" }}>

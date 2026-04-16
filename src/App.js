@@ -15,17 +15,24 @@ import OrderSummary from "./components/OrderSummary";
 import TotalsSummary from "./components/TotalsSummary";
 import Footer from "./components/Footer";
 import PrintQuote from "./components/PrintQuote";
+import ClientModal from "./components/ClientModal";
 
 function App() {
   const [allTacticConfigurations, setAllTacticConfigurations] =
     useState(buildInitialConfigs);
   const [selectedTactics, setSelectedTactics] = useState({});
   const [discountPercentage] = useState(0);
-  const [showPrice, setShowPrice] = useState(true);
+  const [showPrice, setShowPrice] = useState(false);
   const [showHours, setShowHours] = useState(false);
   const [kickoffDate, setKickoffDate] = useState("");
   const [activePackage, setActivePackage] = useState(null);
   const [showQuote, setShowQuote] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [clientDetails, setClientDetails] = useState({
+    name: "",
+    website: "",
+    brief: "",
+  });
 
   const totals = useMemo(
     () => computeTotals(selectedTactics, discountPercentage),
@@ -240,7 +247,13 @@ function App() {
               />
             )}
 
-            <Footer kickoffDate={kickoffDate} onDateChange={setKickoffDate} onQuote={() => setShowQuote(true)} />
+            <Footer
+              kickoffDate={kickoffDate}
+              onDateChange={setKickoffDate}
+              onQuote={() => setShowQuote(true)}
+              onClientDetails={() => setShowClientModal(true)}
+              hasClientDetails={!!clientDetails.name}
+            />
           </div>
 
           {/* Right column — Order summary sidebar */}
@@ -255,11 +268,22 @@ function App() {
           </div>
         </div>
       </div>
+      {showClientModal && (
+        <ClientModal
+          clientDetails={clientDetails}
+          onSave={(details) => {
+            setClientDetails(details);
+            setShowClientModal(false);
+          }}
+          onClose={() => setShowClientModal(false)}
+        />
+      )}
       {showQuote && (
         <PrintQuote
           selectedTactics={selectedTactics}
           totals={totals}
           kickoffDate={kickoffDate}
+          clientDetails={clientDetails}
           onClose={() => setShowQuote(false)}
         />
       )}

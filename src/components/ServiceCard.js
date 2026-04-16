@@ -28,7 +28,7 @@ export default function ServiceCard({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const { cost: displayCost, hours: displayHours } = useMemo(() => {
+  const costResult = useMemo(() => {
     if (!tactic) return { hours: 0, cost: 0 };
     if (Object.keys(currentConfig).length === 0 && !tactic.Variants && !tactic.fixedMonthlyCost) {
       return {
@@ -38,6 +38,10 @@ export default function ServiceCard({
     }
     return calculateTacticCost(tactic, currentConfig);
   }, [tactic, currentConfig]);
+
+  const displayCost = costResult.monthlyCost || costResult.cost;
+  const displayHours = costResult.monthlyHours || costResult.hours;
+  const isMonthly = !!(costResult.monthlyCost || tactic.fixedMonthlyCost);
 
   if (!tactic) return null;
 
@@ -140,7 +144,7 @@ export default function ServiceCard({
           <div className="flex flex-col items-end">
             {showPrice && (
               <span className="text-sm font-semibold" style={{ color: '#494949' }}>
-                +${formatCurrency(displayCost)}{tactic.fixedMonthlyCost ? '/mo' : ''}
+                +${formatCurrency(displayCost)}{isMonthly ? '/mo' : ''}
               </span>
             )}
             {showHours && !tactic.fixedMonthlyCost && (
@@ -318,6 +322,7 @@ export default function ServiceCard({
                     let discountRate = 0;
                     let discountAmount = 0;
                     let finalCost = 0;
+                    let monthlyCost = 0;
                     if (variant.Duration_Months) {
                       const variantHours =
                         variant.Monthly_Hours * variant.Duration_Months;
@@ -328,6 +333,7 @@ export default function ServiceCard({
                       );
                       discountAmount = variantCost * discountRate;
                       finalCost = variantCost - discountAmount;
+                      monthlyCost = finalCost / variant.Duration_Months;
                     }
 
                     const VariantIcon =
@@ -380,13 +386,13 @@ export default function ServiceCard({
                         </div>
                         {discountRate !== 0 && (
                           <p className="text-xs text-green-600 font-semibold mt-1">
-                            Save ${formatCurrency(Math.abs(discountAmount))} (
+                            Save ${formatCurrency(Math.abs(discountAmount / variant.Duration_Months))}/mo (
                             {parseFloat((Math.abs(discountRate) * 100).toFixed(1))}%)
                           </p>
                         )}
                         {variant.Duration_Months && (
                           <p className="text-xs text-gray-700 font-semibold mt-1">
-                            Total: ${formatCurrency(finalCost)}
+                            ${formatCurrency(monthlyCost)}/month
                           </p>
                         )}
                       </div>
