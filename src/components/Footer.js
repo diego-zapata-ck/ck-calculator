@@ -1,10 +1,6 @@
 import { Calendar } from "lucide-react";
 
 export default function Footer({ kickoffDate, onDateChange, onQuote }) {
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -43,18 +39,6 @@ export default function Footer({ kickoffDate, onDateChange, onQuote }) {
       </div>
 
       <div className="flex gap-4 print-hide">
-        <button
-          onClick={handlePrint}
-          className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"
-          style={{
-            width: 166,
-            height: 56,
-            borderRadius: 28,
-            backgroundColor: '#25B1A2',
-          }}
-        >
-          Print quote
-        </button>
         <button
           onClick={onQuote}
           className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"

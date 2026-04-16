@@ -1,80 +1,92 @@
 # CK Service Cost Calculator
 
-React-based calculator for Conversion Kings service pricing.
+Interactive calculator for Conversion Kings service pricing. Clients select services, configure options, and generate a professional PDF quote.
+
+## Getting Started
+
+```bash
+git clone https://github.com/diego-zapata-ck/ck-calculator.git
+cd ck-calculator
+npm install
+npm start
+```
+
+Opens at [localhost:3000](http://localhost:3000). Requires **Node.js 18+**.
+
+## Features
+
+- **Package selector** — Essentials, Pro, or Enterprise pre-selects a bundle of services
+- **Service cards** — Toggle individual services on/off, expand for config options
+- **Show/Hide costs & hours** — Toggle buttons to control what's visible
+- **Order summary sidebar** — Live summary of selected services grouped by category
+- **Quote preview** — Clean, printable investment summary (Print / Save as PDF)
+- **Investment breakdown** — Totals grouped by type (Auditing, Strategy, Execution, Technology)
+- **Savings engine** — Automatic deductions from shared sub-tasks, retainer discounts, and general discounts
 
 ## Calculation Logic
 
 ### Base Formula
 
 ```
-cost = base_hours × $240/hr
+cost = base_hours x $240/hr
 ```
-
-Every service has a **base hours** value. The hourly rate is $240.
 
 ### Adjustments
 
-Services can have configurable adjustments that add hours:
+| Type | Behaviour | Example |
+|------|-----------|---------|
+| `per_unit` | `quantity x hours_per_unit` | Additional pages in Technical Audit |
+| `fixed_increase` | Fixed hours when toggled on | Lead gen report in Baseline Performance |
 
-| Type | Behaviour |
-|------|-----------|
-| `per_unit` | `extra_hours = quantity × hours_per_unit` |
-| `fixed_increase` | Adds a fixed number of hours when a condition is toggled on |
-| `threshold` | Same as per_unit, used for lead-gen event scaling |
-
-**Special case — Conversion Review (ID 13):**
-Uses a multiplicative model. Base includes 2 personas × 2 journeys = 4 combinations. Adding personas/journeys scales as:
+**Conversion Review** uses a multiplicative model (2 personas x 2 journeys base):
 
 ```
-extra_hours = (2 + extra_personas) × (2 + extra_journeys) - 4
+extra_hours = (2 + extra_personas) x (2 + extra_journeys) - 4
 ```
 
-### Variants (Execution services)
+### Execution Variants
 
-Execution services (e.g. CRO retainers) use variants with monthly hours and duration:
-
-```
-total_hours = monthly_hours × duration_months
-cost = total_hours × $240 × (1 - retainer_discount)
-```
-
-Retainer discounts scale by commitment:
+Retainers are priced by commitment (months x hours/month) with scaling discounts:
 
 | Duration | 40 hrs/mo | 60 hrs/mo | 80 hrs/mo |
 |----------|-----------|-----------|-----------|
+| 3 months | 0% | 0% | 0% |
 | 6 months | 0% | 1% | 2.5% |
 | 12 months | 2.5% | 4% | 5% |
 | 24 months | 5% | 7.5% | 10% |
 
 ### Fixed Monthly Cost
 
-Technology services (e.g. Optimisation software) have a flat `fixedMonthlyCost` instead of hourly pricing.
+Technology services (Optimisation software) use a flat `$500/month` instead of hourly pricing.
 
-### Savings
+### Savings Sources
 
-Total savings come from three sources:
+1. **Shared sub-tasks** — Common tasks (QA, Account Management, etc.) charged once across multiple services
+2. **Retainer discounts** — Longer/larger commitments reduce cost (table above)
+3. **General discount** — Optional percentage off the total
 
-1. **Shared sub-task deduplication** — Common sub-tasks (QA, Account Management, etc.) across multiple selected services are only charged once. Duplicates are deducted.
-2. **Retainer discounts** — Longer/larger execution commitments reduce hourly cost (see table above).
-3. **General discount** — Optional percentage discount applied to the total after shared-task savings.
+## Project Structure
 
-### Packages
-
-Three pre-built packages auto-select a set of services:
-- **Essentials** — Core audit services
-- **Pro** — Essentials + strategy + customer insights
-- **Enterprise** — Full suite including execution
+```
+src/
+  App.js              — Main layout, state management
+  data.js             — Service definitions (hours, adjustments, variants)
+  constants.js        — Pricing logic, totals calculation, hourly rate
+  components/
+    Header.js         — Logo + title
+    PackageSelector.js — Essentials / Pro / Enterprise cards
+    ServiceCard.js    — Individual service toggle + config
+    OrderSummary.js   — Sidebar with selected services
+    TotalsSummary.js  — Investment breakdown by type
+    PrintQuote.js     — Professional quote preview for PDF
+    Footer.js         — Kickoff date, quote & share buttons
+public/
+  icons/ck-images/    — Service icon images (see order.txt for mapping)
+```
 
 ## Tech Stack
 
 - React 19 + Create React App
 - Tailwind CSS 3.4
 - Lucide React (icons)
-
-## Development
-
-```bash
-npm install
-npm start        # localhost:3000
-npm run build    # production build
-```
+- Google Fonts: Inter (body), Lato (headings)
