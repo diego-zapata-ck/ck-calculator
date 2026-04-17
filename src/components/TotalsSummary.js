@@ -28,7 +28,8 @@ export default function TotalsSummary({ totals, selectedTactics }) {
   const auditSavings = totals.auditingCommonSubtaskSavingsCostDisplay || 0;
   const auditingCost = auditingRaw - auditSavings; // post-savings so math adds up
   const strategyCost = totals.typeTotals?.Strategy?.cost || 0;
-  const executionMonthly = (totals.typeTotals?.Execution?.monthlyCost || 0) + (totals.typeTotals?.Technology?.monthlyCost || 0);
+  const executionMonthly = totals.typeTotals?.Execution?.monthlyCost || 0;
+  const technologyMonthly = totals.typeTotals?.Technology?.monthlyCost || 0;
   const executionTerm = getExecutionTerm();
 
   // Relationship is Execution type but flat (no variants), calculate its one-off cost
@@ -40,8 +41,9 @@ export default function TotalsSummary({ totals, selectedTactics }) {
   const rows = [];
   if (auditingCost > 0) rows.push({ key: "Auditing", label: "Auditing", cost: auditingCost, types: ["Auditing"] });
   const strategyTotal = strategyCost + relationshipCost;
-  if (strategyTotal > 0) rows.push({ key: "Strategy", label: "Strategy", subtitle: "Per Annum", cost: strategyTotal, types: ["Strategy", "__relationship__"] });
-  if (executionMonthly > 0) rows.push({ key: "Execution", label: "Execution", subtitle: "Monthly", cost: executionMonthly, types: ["Execution", "Technology"], isMonthly: true });
+  if (strategyTotal > 0) rows.push({ key: "Strategy", label: "Strategy", subtitle: "Per Annum", cost: strategyTotal, types: ["Strategy"] });
+  if (executionMonthly > 0) rows.push({ key: "Execution", label: "Execution", subtitle: "Monthly", cost: executionMonthly, types: ["Execution"], isMonthly: true });
+  if (technologyMonthly > 0) rows.push({ key: "Technology", label: "Technology", subtitle: "Monthly", cost: technologyMonthly, types: ["Technology"], isMonthly: true });
 
   if (rows.length === 0) return null;
 
