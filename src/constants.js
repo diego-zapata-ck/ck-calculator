@@ -290,6 +290,9 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
     typeTotals[type].cost += itemCost;
     if (tacticResult.monthlyCost) {
       typeTotals[type].monthlyCost += tacticResult.monthlyCost;
+    } else if (entry.tactic.softwareOptions) {
+      // Software with selectable monthly cost (e.g. BYO $0 or Varify $400)
+      typeTotals[type].monthlyCost += itemCost;
     } else if (entry.tactic.fixedMonthlyCost) {
       typeTotals[type].monthlyCost += entry.tactic.fixedMonthlyCost;
     }

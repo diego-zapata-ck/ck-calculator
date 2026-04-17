@@ -36,7 +36,7 @@ export default function ServiceCard({
 
   const displayCost = costResult.monthlyCost || costResult.cost;
   const displayHours = costResult.monthlyHours || costResult.hours;
-  const isMonthly = !!(costResult.monthlyCost || tactic.fixedMonthlyCost);
+  const isMonthly = !!(costResult.monthlyCost || tactic.fixedMonthlyCost || tactic.softwareOptions);
 
   if (!tactic) return null;
 
