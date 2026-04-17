@@ -1,17 +1,12 @@
 import { useState, useMemo } from "react";
 import {
   ChevronDown,
-  CalendarDays,
-  Clock,
-  CheckCheck,
-  Check,
   Minus,
   Plus,
 } from "lucide-react";
 import {
   HOURLY_RATE,
   TACTIC_ICONS,
-  getCroVariantDiscount,
   formatCurrency,
   formatHoursToMinutes,
   calculateTacticCost,
@@ -73,77 +68,95 @@ export default function ServiceCard({
   const Stepper = ({ name, value }) => (
     <div
       className="flex items-center bg-white"
-      style={{ borderRadius: 22, border: '0.5px solid #DFDFDF', height: 44, width: 132 }}
+      style={{ borderRadius: 124, height: 44 }}
     >
       <button
         onClick={() => handleStepper(name, value, -1)}
-        className="flex items-center justify-center transition-colors cursor-pointer"
-        style={{ width: 36, height: 36, borderRadius: 18, background: '#F8F8F8', marginLeft: 4 }}
+        className="flex items-center justify-center transition-colors cursor-pointer overflow-hidden"
+        style={{ width: 44, height: 44, padding: 14 }}
       >
-        <Minus className="w-3.5 h-3.5 text-gray-500" />
+        <Minus className="w-4 h-4 text-gray-500" />
       </button>
-      <span className="flex-1 text-sm font-medium text-gray-700 text-center">
+      <div
+        className="flex flex-col justify-center text-sm text-black text-center"
+        style={{ width: 44, height: 44, fontFamily: 'Lato, sans-serif' }}
+      >
         {value || 0}
-      </span>
+      </div>
       <button
         onClick={() => handleStepper(name, value, 1)}
-        className="flex items-center justify-center transition-colors cursor-pointer"
-        style={{ width: 36, height: 36, borderRadius: 18, background: '#F8F8F8', marginRight: 4 }}
+        className="flex items-center justify-center transition-colors cursor-pointer overflow-hidden"
+        style={{ width: 44, height: 44, padding: 14 }}
       >
-        <Plus className="w-3.5 h-3.5 text-gray-500" />
+        <Plus className="w-4 h-4 text-gray-500" />
       </button>
     </div>
   );
 
+  const hasExpandedContent = tactic.Description || (tactic.Adjustments && tactic.Adjustments.length > 0) ||
+    (tactic.Variants && tactic.Variants.length > 0) || tactic.durationOptions || tactic.softwareOptions || tactic.participantOptions ||
+    tactic.Inclusions;
 
   return (
     <div
-      className="bg-white transition-all duration-200"
+      className="bg-white transition-all duration-200 overflow-hidden"
       style={{
         borderRadius: 20,
         border: `0.5px solid ${isSelected ? '#B7B7B7' : '#DFDFDF'}`,
-        ...(expanded && isSelected
-          ? { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }
+        ...(expanded
+          ? { boxShadow: '0px 4px 12.1px 0px rgba(0,0,0,0.02)' }
           : {}),
       }}
     >
       {/* Main row */}
       <div
-        className="flex items-center justify-between px-5 gap-4"
-        style={{ height: 72 }}
+        className="flex items-center justify-between"
+        style={{ padding: '12px 12px 12px 12px', paddingRight: 24 }}
       >
         <div className="flex items-center gap-3 flex-grow min-w-0">
           <div
-            className="flex items-center justify-center flex-shrink-0"
-            style={{ width: 48, height: 48, borderRadius: 8, background: '#F8F8F8' }}
+            className="flex items-center justify-center flex-shrink-0 overflow-hidden"
+            style={{ width: 48, height: 48, borderRadius: 8 }}
           >
             {iconSrc ? (
-              <img src={iconSrc} alt={tactic.Name} className="w-9 h-9 object-contain" />
+              <img src={iconSrc} alt={tactic.Name} className="w-full h-full object-cover" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-primary-main" />
+              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                <ChevronDown className="w-5 h-5 text-primary-main" />
+              </div>
             )}
           </div>
-          <span className="font-medium text-gray-900 text-base">
-            {tactic.displayName || tactic.Name}
-          </span>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="p-1 transition-colors cursor-pointer"
-            style={{ color: '#404040' }}
-          >
-            <ChevronDown
-              className={`w-4 h-4 transition-transform duration-200 ${
-                expanded ? "rotate-180" : ""
-              }`}
-              strokeWidth={1.25}
-            />
-          </button>
+          <div className="flex items-center gap-2">
+            <span
+              className="text-base"
+              style={{ fontFamily: 'Lato, sans-serif', color: '#212121' }}
+            >
+              {tactic.displayName || tactic.Name}
+            </span>
+            {hasExpandedContent && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="p-1 transition-colors cursor-pointer"
+                style={{ color: '#404040' }}
+              >
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-200 ${
+                    expanded ? "rotate-180" : ""
+                  }`}
+                  strokeWidth={1.25}
+                />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex flex-col items-end">
             {showPrice && (
-              <span className="text-sm font-semibold" style={{ color: '#494949' }}>
+              <span
+                className="text-base"
+                style={{ fontFamily: 'Lato, sans-serif', color: '#494949' }}
+              >
                 +${formatCurrency(displayCost)}{isMonthly ? '/mo' : ''}
               </span>
             )}
@@ -160,8 +173,9 @@ export default function ServiceCard({
             style={{
               width: 46,
               height: 24,
-              borderRadius: 12,
+              borderRadius: 124,
               backgroundColor: isSelected ? '#25B1A2' : '#E4E4E4',
+              padding: 2,
             }}
           >
             <span
@@ -169,8 +183,8 @@ export default function ServiceCard({
               style={{
                 width: 20,
                 height: 20,
-                borderRadius: 10,
-                transform: isSelected ? 'translateX(24px)' : 'translateX(2px)',
+                borderRadius: 400,
+                transform: isSelected ? 'translateX(22px)' : 'translateX(0px)',
               }}
             />
           </button>
@@ -179,23 +193,67 @@ export default function ServiceCard({
 
       {/* Expanded content */}
       {expanded && (
-        <div className="px-5 pb-4 pt-1">
-          {/* Description */}
-          {tactic.Description && (
-            <p className="text-sm mb-3" style={{ color: '#494949', lineHeight: '1.5' }}>
-              {tactic.Description}
-            </p>
+        <div style={{ paddingBottom: expanded ? 24 : 12 }}>
+          {/* Description & Inclusions — indented past the icon */}
+          {(tactic.Description || tactic.Inclusions) && (
+            <div
+              className="flex items-center justify-center"
+              style={{ paddingLeft: 60, paddingRight: 24 }}
+            >
+              <div className="flex-1 min-w-0 flex flex-col gap-3" style={{ paddingRight: 12 }}>
+                {tactic.Description && (
+                  <p
+                    className="text-base w-full"
+                    style={{ fontFamily: 'Lato, sans-serif', color: '#494949', lineHeight: 1.4 }}
+                  >
+                    {tactic.Description}
+                  </p>
+                )}
+                {tactic.Inclusions && tactic.Inclusions.length > 0 && (
+                  <div className="flex flex-col w-full">
+                    <p
+                      className="text-base w-full"
+                      style={{ fontFamily: 'Lato, sans-serif', color: 'rgba(73, 73, 73, 0.8)', lineHeight: 1.4 }}
+                    >
+                      Base inclusions:
+                    </p>
+                    {tactic.Inclusions.map((inc, i) => (
+                      <p
+                        key={i}
+                        className="text-base w-full"
+                        style={{ fontFamily: 'Lato, sans-serif', color: '#494949', lineHeight: 1.4 }}
+                      >
+                        {inc}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-          {/* Compact adjustment controls */}
+
+          {/* Adjustment controls — stepper rows */}
           {tactic.Adjustments && tactic.Adjustments.length > 0 && (
-            <div className="space-y-2">
+            <div className="flex flex-col" style={{ padding: '0 12px', marginTop: 12 }}>
               {tactic.Adjustments.map((adj, index) => (
                 <div key={`${tactic.ID}-adj-${index}`}>
-                  {adj.Type === "per_unit" &&
-                    adj.Unit !== "additional user journey" && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm" style={{ color: '#494949' }}>
-                          {adj.Description}
+                  {adj.Type === "per_unit" && (
+                      <div
+                        className="flex items-center justify-between"
+                        style={{
+                          border: '1px solid #F0F0F0',
+                          borderRadius: 12,
+                          paddingLeft: 16,
+                          paddingRight: 8,
+                          paddingTop: 8,
+                          paddingBottom: 8,
+                        }}
+                      >
+                        <span
+                          className="text-sm"
+                          style={{ fontFamily: 'Lato, sans-serif', color: '#2D2D2D' }}
+                        >
+                          {adj.Title || adj.Description}
                         </span>
                         <Stepper
                           name={adj.Unit.replace(/\s/g, "")}
@@ -206,8 +264,21 @@ export default function ServiceCard({
                       </div>
                     )}
                   {adj.Type === "threshold" && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm" style={{ color: '#494949' }}>
+                    <div
+                      className="flex items-center justify-between"
+                      style={{
+                        border: '1px solid #F0F0F0',
+                        borderRadius: 12,
+                        paddingLeft: 16,
+                        paddingRight: 8,
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                      }}
+                    >
+                      <span
+                        className="text-sm"
+                        style={{ fontFamily: 'Lato, sans-serif', color: '#2D2D2D' }}
+                      >
                         {adj.Description}
                       </span>
                       <Stepper
@@ -217,7 +288,17 @@ export default function ServiceCard({
                     </div>
                   )}
                   {adj.Type === "fixed_increase" && (
-                    <div className="flex items-center gap-2">
+                    <div
+                      className="flex items-center gap-2"
+                      style={{
+                        border: '1px solid #F0F0F0',
+                        borderRadius: 12,
+                        paddingLeft: 16,
+                        paddingRight: 8,
+                        paddingTop: 8,
+                        paddingBottom: 8,
+                      }}
+                    >
                       <input
                         type="checkbox"
                         id={`${tactic.ID}-${adj.Condition}`}
@@ -229,34 +310,212 @@ export default function ServiceCard({
                       <label
                         htmlFor={`${tactic.ID}-${adj.Condition}`}
                         className="text-sm cursor-pointer"
-                        style={{ color: '#494949' }}
+                        style={{ fontFamily: 'Lato, sans-serif', color: '#2D2D2D' }}
                       >
                         {adj.Description}
                       </label>
                     </div>
                   )}
-                  {tactic.ID === 13 &&
-                    adj.Unit === "additional user journey" && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm" style={{ color: '#494949' }}>
-                          {adj.Description}
-                        </span>
-                        <Stepper
-                          name="numAdditionalUserJourneysMeclabs"
-                          value={
-                            currentConfig.numAdditionalUserJourneysMeclabs || 0
-                          }
-                        />
-                      </div>
-                    )}
+                  {adj.Type === "exclusive_option" && (
+                    <div
+                      className="flex flex-wrap gap-x-4 gap-y-2"
+                      style={{
+                        border: '1px solid #F0F0F0',
+                        borderRadius: 12,
+                        paddingLeft: 16,
+                        paddingRight: 8,
+                        paddingTop: 10,
+                        paddingBottom: 10,
+                      }}
+                    >
+                      {adj.Options.map((opt) => (
+                        <div key={opt.value} className="flex items-center">
+                          <input
+                            type="radio"
+                            id={`${tactic.ID}-${adj.Condition}-${opt.value}`}
+                            name={`${tactic.ID}-${adj.Condition}`}
+                            value={opt.value}
+                            checked={currentConfig[adj.Condition] === opt.value}
+                            onChange={() => {
+                              const newVal = currentConfig[adj.Condition] === opt.value ? undefined : opt.value;
+                              onConfigChange(tactic.ID, { ...currentConfig, [adj.Condition]: newVal });
+                            }}
+                            className="h-4 w-4 text-primary-main border-gray-300 focus:ring-primary-main cursor-pointer"
+                          />
+                          <label
+                            htmlFor={`${tactic.ID}-${adj.Condition}-${opt.value}`}
+                            className="ml-2 text-sm cursor-pointer"
+                            style={{ fontFamily: 'Lato, sans-serif', color: '#2D2D2D' }}
+                          >
+                            {opt.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Variant selector */}
-          {tactic.Variants && tactic.Variants.length > 0 && (
-            <div className={tactic.Adjustments?.length > 0 ? "mt-3" : ""}>
+          {/* ── Execution (ID 15): department badges + select monthly hours ── */}
+          {tactic.ID === 15 && tactic.Variants && (
+            <div style={{ padding: '0 12px', marginTop: 12 }}>
+              {/* Department badges */}
+              {tactic.departments && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {tactic.departments.map((dept) => (
+                    <span
+                      key={dept.name || dept}
+                      className="flex items-center gap-2 py-1 text-sm"
+                      style={{
+                        background: 'white',
+                        borderRadius: 8,
+                        color: '#525252',
+                        fontFamily: 'Lato, sans-serif',
+                        paddingLeft: 8,
+                        paddingRight: 16,
+                      }}
+                    >
+                      {dept.icon && (
+                        <img src={dept.icon} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                      )}
+                      {dept.name || dept}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Select monthly hours */}
+              <p className="text-sm font-bold mb-2" style={{ color: '#171C38' }}>Select monthly hours</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[40, 60, 80].map((hours) => {
+                  const isActive = currentConfig.selectedMonthlyHours === hours;
+                  return (
+                    <button
+                      key={hours}
+                      onClick={() => {
+                        const duration = currentConfig.selectedDuration || 3;
+                        const variantName = `${duration} Months @ ${hours} hrs/month`;
+                        onConfigChange(tactic.ID, {
+                          ...currentConfig,
+                          selectedMonthlyHours: hours,
+                          selectedVariantName: variantName,
+                        });
+                      }}
+                      className="py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all"
+                      style={{
+                        background: isActive ? 'rgba(37, 177, 162, 0.08)' : '#F8F8F8',
+                        border: isActive ? '1.5px solid #25B1A2' : '1px solid #E4E4E4',
+                        color: isActive ? '#25B1A2' : '#494949',
+                      }}
+                    >
+                      {hours} hours
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Usability studies (ID 9): select participants ── */}
+          {tactic.participantOptions && (
+            <div>
+              <div className="grid grid-cols-3 gap-3">
+                {tactic.participantOptions.map((opt) => {
+                  const isActive = (currentConfig.selectedParticipants || 6) === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => {
+                        onConfigChange(tactic.ID, {
+                          ...currentConfig,
+                          selectedParticipants: opt.value,
+                        });
+                      }}
+                      className="py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all"
+                      style={{
+                        background: isActive ? 'rgba(37, 177, 162, 0.08)' : '#F8F8F8',
+                        border: isActive ? '1.5px solid #25B1A2' : '1px solid #E4E4E4',
+                        color: isActive ? '#25B1A2' : '#494949',
+                      }}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Relationship (ID 19): select duration ── */}
+          {tactic.durationOptions && (
+            <div style={{ padding: '0 12px', marginTop: 12 }}>
+              <p className="text-sm font-bold mb-2" style={{ color: '#171C38' }}>Select duration</p>
+              <div className="grid grid-cols-3 gap-3">
+                {tactic.durationOptions.map((months) => {
+                  const isActive = currentConfig.selectedDuration === months;
+                  return (
+                    <button
+                      key={months}
+                      onClick={() => {
+                        onConfigChange(tactic.ID, {
+                          ...currentConfig,
+                          selectedDuration: months,
+                        });
+                      }}
+                      className="py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all"
+                      style={{
+                        background: isActive ? 'rgba(37, 177, 162, 0.08)' : '#F8F8F8',
+                        border: isActive ? '1.5px solid #25B1A2' : '1px solid #E4E4E4',
+                        color: isActive ? '#25B1A2' : '#494949',
+                      }}
+                    >
+                      {months} months
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Optimisation software (ID 20): select software ── */}
+          {tactic.softwareOptions && (
+            <div style={{ padding: '0 12px', marginTop: 12 }}>
+              <p className="text-sm font-bold mb-2" style={{ color: '#171C38' }}>Select software</p>
+              <div className="grid grid-cols-2 gap-3">
+                {tactic.softwareOptions.map((sw) => {
+                  const isActive = (currentConfig.selectedSoftware || 'byo') === sw.value;
+                  return (
+                    <button
+                      key={sw.value}
+                      onClick={() => {
+                        onConfigChange(tactic.ID, {
+                          ...currentConfig,
+                          selectedSoftware: sw.value,
+                        });
+                      }}
+                      className="py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all"
+                      style={{
+                        background: isActive ? 'rgba(37, 177, 162, 0.08)' : '#F8F8F8',
+                        border: isActive ? '1.5px solid #25B1A2' : '1px solid #E4E4E4',
+                        color: isActive ? '#25B1A2' : '#494949',
+                      }}
+                    >
+                      {sw.label}
+                      <span className="block text-xs mt-0.5" style={{ color: isActive ? '#25B1A2' : '#B7B7B7' }}>
+                        {sw.monthlyCost > 0 ? `$${sw.monthlyCost}/month` : '$0/month'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Generic variant selector (for non-Execution services like Usability studies) ── */}
+          {tactic.Variants && tactic.Variants.length > 0 && tactic.ID !== 15 && (
+            <div style={{ padding: '0 12px', marginTop: 12 }}>
               {tactic.ID === 9 ? (
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
                   <div className="flex items-center">
@@ -316,98 +575,8 @@ export default function ServiceCard({
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {tactic.Variants.map((variant, index) => {
-                    let discountRate = 0;
-                    let discountAmount = 0;
-                    let finalCost = 0;
-                    let monthlyCost = 0;
-                    if (variant.Duration_Months) {
-                      const variantHours =
-                        variant.Monthly_Hours * variant.Duration_Months;
-                      const variantCost = variantHours * HOURLY_RATE;
-                      discountRate = getCroVariantDiscount(
-                        variant.Duration_Months,
-                        variant.Monthly_Hours,
-                      );
-                      discountAmount = variantCost * discountRate;
-                      finalCost = variantCost - discountAmount;
-                      monthlyCost = finalCost / variant.Duration_Months;
-                    }
-
-                    const VariantIcon =
-                      variant.Name === "Large Strategy"
-                        ? CheckCheck
-                        : Check;
-
-                    return (
-                      <div
-                        key={`${tactic.ID}-variant-${index}`}
-                        onClick={() => handleVariantChange(variant.Name)}
-                        className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 text-center flex flex-col items-center justify-center
-                          ${
-                            currentConfig.selectedVariantName ===
-                            variant.Name
-                              ? "bg-primary-light border-primary-main shadow-md"
-                              : "bg-gray-50 border-gray-200 hover:bg-gray-100"
-                          }`}
-                      >
-                        <div className="flex items-center gap-2 text-primary-main mb-1">
-                          {variant.Duration_Months ? (
-                            <>
-                              <CalendarDays className="w-4 h-4" />
-                              <span className="font-semibold text-sm">
-                                {variant.Duration_Months} Months
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <VariantIcon className="w-4 h-4" />
-                              <span className="font-semibold text-sm">
-                                {variant.Name}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-gray-600">
-                          {variant.Duration_Months ? (
-                            <>
-                              <Clock className="w-3 h-3" />
-                              <span className="text-xs">
-                                {variant.Monthly_Hours} hrs/month
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-xs">
-                              {variant.Description}
-                            </span>
-                          )}
-                        </div>
-                        {discountRate !== 0 && (
-                          <p className="text-xs text-green-600 font-semibold mt-1">
-                            Save ${formatCurrency(Math.abs(discountAmount / variant.Duration_Months))}/mo (
-                            {parseFloat((Math.abs(discountRate) * 100).toFixed(1))}%)
-                          </p>
-                        )}
-                        {variant.Duration_Months && (
-                          <p className="text-xs text-gray-700 font-semibold mt-1">
-                            ${formatCurrency(monthlyCost)}/month
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              ) : null}
             </div>
-          )}
-
-          {/* Technology type — fixed monthly cost info */}
-          {tactic.fixedMonthlyCost && (
-            <p className="text-sm" style={{ color: '#494949' }}>
-              Fixed monthly cost: ${formatCurrency(tactic.fixedMonthlyCost)} / month
-            </p>
           )}
         </div>
       )}

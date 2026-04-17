@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { data } from "./data";
 import {
   CATEGORY_ORDER,
@@ -67,22 +67,30 @@ function App() {
     const newSelectedTactics = {};
     const newAllTacticConfigurations = { ...allTacticConfigurations };
 
+    // Package-specific duration defaults
+    const pkgDuration = 6;
+
     pkg.serviceIds.forEach((serviceId) => {
       const service = data.find((t) => t.ID === serviceId);
       if (service) {
-        const initialConfig = newAllTacticConfigurations[service.ID] || {};
-        if (
-          service.Variants?.length > 0 &&
-          !initialConfig.selectedVariantName
-        ) {
-          initialConfig.selectedVariantName = service.Variants[0].Name;
+        const initialConfig = { ...(newAllTacticConfigurations[service.ID] || {}) };
+
+        // Set duration for Relationship and Execution based on package
+        if (service.ID === 19) {
+          initialConfig.selectedDuration = pkgDuration;
         }
-        const { hours, cost } = calculateTacticCost(service, initialConfig);
+        if (service.ID === 15) {
+          const hours = initialConfig.selectedMonthlyHours || 40;
+          initialConfig.selectedDuration = pkgDuration;
+          initialConfig.selectedVariantName = `${pkgDuration} Months @ ${hours} hrs/month`;
+        }
+
+        const result = calculateTacticCost(service, initialConfig);
         newSelectedTactics[service.ID] = {
           tactic: service,
           config: initialConfig,
-          hours,
-          cost,
+          hours: result.hours,
+          cost: result.cost,
         };
         newAllTacticConfigurations[service.ID] = initialConfig;
       }
@@ -95,25 +103,37 @@ function App() {
   const updateTacticConfig = (tacticId, newConfig) => {
     setAllTacticConfigurations((prev) => {
       const updatedAllConfigs = { ...prev, [tacticId]: newConfig };
+
+      // Cross-sync: Relationship duration ↔ Execution variant
+      if (tacticId === 19 && newConfig.selectedDuration) {
+        // Relationship changed duration → update Execution's variant
+        const execConfig = updatedAllConfigs[15] || {};
+        const hours = execConfig.selectedMonthlyHours || 40;
+        const variantName = `${newConfig.selectedDuration} Months @ ${hours} hrs/month`;
+        updatedAllConfigs[15] = { ...execConfig, selectedDuration: newConfig.selectedDuration, selectedVariantName: variantName };
+      }
+      if (tacticId === 15 && newConfig.selectedMonthlyHours) {
+        // Execution changed hours → update variant with current duration
+        const relConfig = updatedAllConfigs[19] || {};
+        const duration = relConfig.selectedDuration || newConfig.selectedDuration || 3;
+        const variantName = `${duration} Months @ ${newConfig.selectedMonthlyHours} hrs/month`;
+        updatedAllConfigs[15] = { ...updatedAllConfigs[15], selectedDuration: duration, selectedVariantName: variantName };
+      }
+
+      // Recalculate costs for all affected tactics
       setSelectedTactics((selectedPrev) => {
-        if (selectedPrev[tacticId]) {
-          const updatedTactic = selectedPrev[tacticId].tactic;
-          const { hours, cost } = calculateTacticCost(
-            updatedTactic,
-            newConfig,
-          );
-          return {
-            ...selectedPrev,
-            [tacticId]: {
-              ...selectedPrev[tacticId],
-              config: newConfig,
-              hours,
-              cost,
-            },
-          };
-        }
-        return selectedPrev;
+        let updated = { ...selectedPrev };
+        [tacticId, 15, 19].forEach((id) => {
+          if (updated[id]) {
+            const t = updated[id].tactic;
+            const c = updatedAllConfigs[id] || {};
+            const result = calculateTacticCost(t, c);
+            updated[id] = { ...updated[id], config: c, hours: result.hours, cost: result.cost };
+          }
+        });
+        return updated;
       });
+
       return updatedAllConfigs;
     });
   };
@@ -122,6 +142,56 @@ function App() {
 
   // Divider categories — draw a line before "Strategy"
   const dividerBefore = new Set(["Strategy", "Experimentation"]);
+
+  const buildShareUrl = useCallback(() => {
+    const params = new URLSearchParams();
+    const ids = Object.keys(selectedTactics).join(",");
+    if (ids) params.set("s", ids);
+    // Execution config
+    const execConfig = allTacticConfigurations[15] || {};
+    if (execConfig.selectedMonthlyHours) params.set("hours", execConfig.selectedMonthlyHours);
+    // Duration from Relationship
+    const relConfig = allTacticConfigurations[19] || {};
+    if (relConfig.selectedDuration) params.set("duration", relConfig.selectedDuration);
+    // Software
+    const techConfig = allTacticConfigurations[20] || {};
+    if (techConfig.selectedSoftware) params.set("software", techConfig.selectedSoftware);
+    // Baseline
+    const baseConfig = allTacticConfigurations[4] || {};
+    if (baseConfig.baselineOption) params.set("baseline", baseConfig.baselineOption);
+    // Usability participants
+    const usConfig = allTacticConfigurations[9] || {};
+    if (usConfig.selectedParticipants) params.set("participants", usConfig.selectedParticipants);
+    // Info architecture
+    const iaConfig = allTacticConfigurations[12] || {};
+    if (iaConfig.pageHierarchy) params.set("pages", iaConfig.pageHierarchy);
+    // Conversion review personas
+    const crConfig = allTacticConfigurations[13] || {};
+    if (crConfig.additionalpersona) params.set("personas", crConfig.additionalpersona);
+    // Kickoff date
+    if (kickoffDate) params.set("kickoff", kickoffDate);
+    // Client details
+    if (clientDetails.name) params.set("client", clientDetails.name);
+    if (clientDetails.website) params.set("website", clientDetails.website);
+
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  }, [selectedTactics, allTacticConfigurations, kickoffDate, clientDetails]);
+
+  const handleShare = useCallback(async () => {
+    const url = buildShareUrl();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: clientDetails.name ? `Quote for ${clientDetails.name}` : "Service Cost Calculator Quote",
+          url,
+        });
+      } catch (e) {
+        // User cancelled share — ignore
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+    }
+  }, [buildShareUrl, clientDetails.name]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
@@ -213,8 +283,8 @@ function App() {
                   )}
                   <section className="mb-8">
                     <h3
-                      className="text-lg font-bold text-tertiary-text mb-4"
-                      style={{ fontFamily: 'Lato, sans-serif' }}
+                      className="font-bold mb-5"
+                      style={{ fontFamily: 'Manrope, sans-serif', fontSize: 20, lineHeight: 1.3, color: '#494949' }}
                     >
                       {categoryName}
                     </h3>
@@ -253,6 +323,7 @@ function App() {
               onQuote={() => setShowQuote(true)}
               onClientDetails={() => setShowClientModal(true)}
               hasClientDetails={!!clientDetails.name}
+              onShare={handleShare}
             />
           </div>
 
@@ -285,6 +356,7 @@ function App() {
           kickoffDate={kickoffDate}
           clientDetails={clientDetails}
           onClose={() => setShowQuote(false)}
+          onShare={handleShare}
         />
       )}
     </div>

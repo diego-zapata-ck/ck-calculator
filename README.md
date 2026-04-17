@@ -55,7 +55,7 @@ Retainers are priced by commitment (months x hours/month) with scaling discounts
 | 12 months | 2.5% | 4% | 5% |
 | 24 months | 5% | 7.5% | 10% |
 
-*Lower hours get a higher discount at short commitments; longer commitments reward higher hours more.*
+> **Note:** This table needs review — 3 months @ 40hrs (2.5%) is higher than 6 months @ 40hrs (0%), which is counterintuitive.
 
 ### Fixed Monthly Cost
 

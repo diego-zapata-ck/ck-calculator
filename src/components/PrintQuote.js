@@ -1,9 +1,12 @@
+import { useState } from "react";
+import { Check } from "lucide-react";
 import { formatCurrency, formatHoursToMinutes, calculateTacticCost } from "../constants";
 
 const INVESTMENT_GROUPS = [
   { key: "Auditing", label: "Auditing", types: ["Auditing"] },
   { key: "Strategy", label: "Strategy", types: ["Strategy"] },
-  { key: "Execution", label: "Execution", types: ["Execution", "Technology"], suffix: "/ month" },
+  { key: "Execution", label: "Execution", types: ["Execution"], suffix: "/ month" },
+  { key: "Technology", label: "Technology", types: ["Technology"], suffix: "/ month" },
 ];
 
 function getItemDetail(entry) {
@@ -22,11 +25,10 @@ function getItemDetail(entry) {
     return null;
   }
 
-  // Conversion review (ID 13) — personas × journeys
+  // Conversion review (ID 13) — personas only
   if (tactic.ID === 13) {
     const personas = 2 + (config.additionalpersona || 0);
-    const journeys = 2 + (config.numAdditionalUserJourneysMeclabs || 0);
-    return `${personas} personas × ${journeys} user journeys`;
+    return `${personas} personas analysed`;
   }
 
   // Services with per_unit adjustments — show what's included
@@ -80,7 +82,8 @@ function getGroupDetail(group, items) {
   return null;
 }
 
-export default function PrintQuote({ selectedTactics, totals, kickoffDate, clientDetails, onClose }) {
+export default function PrintQuote({ selectedTactics, totals, kickoffDate, clientDetails, onClose, onShare }) {
+  const [copied, setCopied] = useState(false);
   const today = new Date().toLocaleDateString("en-AU", {
     day: "numeric",
     month: "long",
@@ -114,6 +117,30 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, clien
       <div className="print-hide sticky top-0 bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between z-10">
         <span className="text-sm text-gray-500">Quote preview</span>
         <div className="flex gap-3">
+          <button
+            onClick={async () => {
+              if (onShare) await onShare();
+              if (!navigator.share) {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }
+            }}
+            className="flex items-center gap-1.5 px-5 py-2 text-sm font-semibold rounded-full cursor-pointer transition-all"
+            style={{
+              border: "1.5px solid #171C38",
+              color: "#171C38",
+              backgroundColor: copied ? "rgba(23, 28, 56, 0.04)" : "white",
+            }}
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                Link copied
+              </>
+            ) : (
+              "Share quote"
+            )}
+          </button>
           <button
             onClick={handlePrint}
             className="px-5 py-2 text-sm font-semibold text-white rounded-full cursor-pointer"
@@ -254,6 +281,8 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, clien
                   } else if (group.suffix && e.tactic.fixedMonthlyCost) {
                     lineCost = e.tactic.fixedMonthlyCost;
                   }
+                  // Skip zero-cost items
+                  if (lineCost === 0 && e.hours === 0) return null;
                   return (
                     <div
                       key={e.tactic.ID}
@@ -312,7 +341,8 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, clien
           const auditSavings = totals.auditingCommonSubtaskSavingsCostDisplay || 0;
           const auditingCost = auditingRaw - auditSavings;
           const strategyCost = totals.typeTotals?.Strategy?.cost || 0;
-          const executionMonthly = (totals.typeTotals?.Execution?.monthlyCost || 0) + (totals.typeTotals?.Technology?.monthlyCost || 0);
+          const executionMonthly = totals.typeTotals?.Execution?.monthlyCost || 0;
+          const technologyMonthly = totals.typeTotals?.Technology?.monthlyCost || 0;
           const relationshipCost = Object.values(selectedTactics)
             .filter((e) => e.tactic.Type === "Execution" && !e.tactic.Variants?.length)
             .reduce((sum, e) => sum + (e.cost || 0), 0);
@@ -368,6 +398,16 @@ export default function PrintQuote({ selectedTactics, totals, kickoffDate, clien
                   </span>
                   <span className="text-sm font-bold" style={{ color: "#171C38" }}>
                     {executionTerm}
+                  </span>
+                </div>
+              )}
+              {technologyMonthly > 0 && (
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm" style={{ color: "#494949" }}>
+                    Technology <span className="text-xs" style={{ color: "#B7B7B7" }}>(Monthly)</span>
+                  </span>
+                  <span className="text-sm font-bold" style={{ color: "#171C38" }}>
+                    ${formatCurrency(technologyMonthly)} / month
                   </span>
                 </div>
               )}
