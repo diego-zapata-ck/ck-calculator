@@ -10,7 +10,7 @@ const INVESTMENT_GROUPS = [
 ];
 
 function getItemDetail(entry) {
-  const { tactic, config, hours } = entry;
+  const { tactic, config } = entry;
 
   // Execution variants — e.g. "3 months x 60 hrs/month"
   if (tactic.Variants?.length > 0 && config.selectedVariantName) {
