@@ -1,18 +1,14 @@
-import { Calendar } from "lucide-react";
+import { useState } from "react";
+import { Calendar, UserPlus, UserCheck, Check } from "lucide-react";
 
-export default function Footer({ kickoffDate, onDateChange }) {
-  const handlePrint = () => {
-    window.print();
-  };
+export default function Footer({ kickoffDate, onDateChange, onQuote, onClientDetails, hasClientDetails, onShare }) {
+  const [copied, setCopied] = useState(false);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "Service Cost Calculator Quote",
-        url: window.location.href,
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
+  const handleShare = async () => {
+    if (onShare) await onShare();
+    if (!navigator.share) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -44,29 +40,55 @@ export default function Footer({ kickoffDate, onDateChange }) {
 
       <div className="flex gap-4 print-hide">
         <button
-          onClick={handlePrint}
-          className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"
+          onClick={onClientDetails}
+          className="flex items-center gap-2 font-semibold text-base cursor-pointer transition-all duration-200 hover:shadow-lg"
           style={{
-            width: 166,
             height: 56,
+            paddingLeft: 24,
+            paddingRight: 24,
             borderRadius: 28,
-            backgroundColor: '#25B1A2',
+            backgroundColor: hasClientDetails ? '#25B1A2' : 'white',
+            color: hasClientDetails ? 'white' : '#171C38',
+            border: hasClientDetails ? 'none' : '1.5px solid #171C38',
           }}
         >
-          Print quote
+          {hasClientDetails ? <UserCheck className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
+          {hasClientDetails ? 'Client added' : 'Add client'}
+        </button>
+        <button
+          onClick={onQuote}
+          className="font-semibold text-base text-white cursor-pointer transition-all duration-200 hover:shadow-lg"
+          style={{
+            height: 56,
+            paddingLeft: 32,
+            paddingRight: 32,
+            borderRadius: 28,
+            backgroundColor: '#3D4A97',
+          }}
+        >
+          Preview quote
         </button>
         <button
           onClick={handleShare}
-          className="font-semibold text-base cursor-pointer transition-colors duration-200 hover:bg-gray-50"
+          className="flex items-center gap-2 font-semibold text-base cursor-pointer transition-all duration-200"
           style={{
-            width: 173,
             height: 55,
+            paddingLeft: 28,
+            paddingRight: 28,
             borderRadius: 27.5,
-            border: '1.5px solid #171C38',
+            border: copied ? '1.5px solid #171C38' : '1.5px solid #171C38',
             color: '#171C38',
+            backgroundColor: copied ? 'rgba(23, 28, 56, 0.04)' : 'white',
           }}
         >
-          Share quote
+          {copied ? (
+            <>
+              <Check className="w-4 h-4" />
+              Link copied
+            </>
+          ) : (
+            'Share quote'
+          )}
         </button>
       </div>
     </footer>

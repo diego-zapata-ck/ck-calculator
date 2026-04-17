@@ -47,6 +47,11 @@ export const COMMON_SUBTASK_NAMES = [
 ];
 
 export const getCroVariantDiscount = (duration, monthlyHours) => {
+  if (duration === 3) {
+    if (monthlyHours === 40) return 0.025;
+    if (monthlyHours === 60) return 0.01;
+    if (monthlyHours === 80) return 0;
+  }
   if (duration === 6) {
     if (monthlyHours === 40) return 0;
     if (monthlyHours === 60) return 0.01;
@@ -87,7 +92,7 @@ export const packages = {
   Essentials: {
     name: "Essentials",
     description: "Best for companies with smaller budgets",
-    serviceIds: [1, 4, 7, 13, 14, 15, 20],
+    serviceIds: [1, 4, 7, 13, 14, 15, 19, 20],
   },
   Pro: {
     name: "Pro",
@@ -107,25 +112,29 @@ export const buildInitialConfigs = () => {
   data.forEach((service) => {
     const config = {};
 
-    if (service.ID === 2) config.additionalpage = 0;
-    if (service.ID === 3) config.additionalLeadGenEvent = 0;
-    if (service.ID === 5) {
-      config["specificTable"] = false;
-      config["leadgenreport"] = false;
-      config["hybridwebsite"] = false;
+    if (service.ID === 3) {
+      config.shopPaySupport = false;
+      config.dataMismatch = false;
+      config.additionalTrackingLeadGen = false;
     }
-    if (service.ID === 10) config.additionalpage = 0;
+    // Baseline performance: default to e-commerce
+    if (service.ID === 4) config.baselineOption = "ecommerce";
+    // Usability studies: default 6 participants
+    if (service.ID === 9) config.selectedParticipants = 6;
     if (service.ID === 11) config.additionalcompetitor = 0;
+    // Info architecture: default 1-50 pages
+    if (service.ID === 12) config.pageHierarchy = "1-50";
     if (service.ID === 13) config.additionalpersona = 0;
-    if (service.ID === 13) config.numAdditionalUserJourneysMeclabs = 0;
-
-    if (
-      service.Type === "Execution" &&
-      service.Variants &&
-      service.Variants.length > 0
-    ) {
-      config.selectedVariantName = service.Variants[0].Name;
+    // Execution: default 40hrs/month, 3 months
+    if (service.ID === 15) {
+      config.selectedMonthlyHours = 40;
+      config.selectedDuration = 3;
+      config.selectedVariantName = "3 Months @ 40 hrs/month";
     }
+    // Relationship: default 3 months
+    if (service.ID === 19) config.selectedDuration = 3;
+    // Optimisation software: default BYO
+    if (service.ID === 20) config.selectedSoftware = "byo";
     configs[service.ID] = config;
   });
   return configs;
@@ -144,6 +153,11 @@ export const formatCurrency = (amount) =>
 
 export const calculateTacticCost = (tactic, config) => {
   // Fixed monthly cost services (e.g. Optimisation software)
+  if (tactic.fixedMonthlyCost !== undefined && tactic.softwareOptions) {
+    const selectedSw = tactic.softwareOptions.find((o) => o.value === (config.selectedSoftware || 'byo'));
+    const monthlyCost = selectedSw ? selectedSw.monthlyCost : 0;
+    return { hours: 0, cost: monthlyCost };
+  }
   if (tactic.fixedMonthlyCost) {
     return { hours: 0, cost: tactic.fixedMonthlyCost };
   }
@@ -153,14 +167,9 @@ export const calculateTacticCost = (tactic, config) => {
 
   if (tactic.Adjustments) {
     if (tactic.ID === 13) {
-      // Conversion review: multiplicative personas × journeys
-      // Base includes 2 personas and 2 journeys (4 combinations)
+      // Conversion review: extra personas only (base includes 2)
       const extraPersonas = config.additionalpersona || 0;
-      const extraJourneys = config.numAdditionalUserJourneysMeclabs || 0;
-      const totalCombinations = (2 + extraPersonas) * (2 + extraJourneys);
-      const baseCombinations = 4; // 2 × 2
-      const additionalCombinations = totalCombinations - baseCombinations;
-      currentHours += additionalCombinations * 1; // 1 hour per additional combination
+      currentHours += extraPersonas * 1; // 1 hour per additional persona
     } else {
       tactic.Adjustments.forEach((adj) => {
         if (adj.Type === "per_unit") {
@@ -170,10 +179,22 @@ export const calculateTacticCost = (tactic, config) => {
           }
         } else if (adj.Type === "fixed_increase" && config[adj.Condition]) {
           currentHours += adj.Hours_Increase;
+        } else if (adj.Type === "exclusive_option" && config[adj.Condition]) {
+          const selected = adj.Options.find(o => o.value === config[adj.Condition]);
+          if (selected) currentHours += selected.Hours_Increase;
         }
       });
     }
   }
+
+  // Participant options (Usability studies)
+  if (tactic.participantOptions && config.selectedParticipants) {
+    const opt = tactic.participantOptions.find((o) => o.value === config.selectedParticipants);
+    if (opt) currentHours += opt.hoursIncrease;
+  }
+
+  let monthlyHours = null;
+  let durationMonths = null;
 
   if (tactic.Variants && config.selectedVariantName) {
     const selected = tactic.Variants.find(
@@ -183,10 +204,12 @@ export const calculateTacticCost = (tactic, config) => {
       if (tactic.ID === 9) {
         currentHours += selected.Hours_Increase;
       } else if (tactic.Type === "Execution") {
-        currentHours = selected.Monthly_Hours * selected.Duration_Months;
+        monthlyHours = selected.Monthly_Hours;
+        durationMonths = selected.Duration_Months;
+        currentHours = monthlyHours * durationMonths;
         variantDiscountPct = getCroVariantDiscount(
-          selected.Duration_Months,
-          selected.Monthly_Hours
+          durationMonths,
+          monthlyHours
         );
       }
     }
@@ -195,7 +218,16 @@ export const calculateTacticCost = (tactic, config) => {
   let currentCost = currentHours * HOURLY_RATE;
   currentCost *= 1 - variantDiscountPct;
 
-  return { hours: currentHours, cost: currentCost };
+  const result = { hours: currentHours, cost: currentCost };
+
+  // For Execution types, also return monthly breakdown
+  if (durationMonths) {
+    result.monthlyCost = currentCost / durationMonths;
+    result.durationMonths = durationMonths;
+    result.monthlyHours = monthlyHours;
+  }
+
+  return result;
 };
 
 
@@ -214,13 +246,33 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
   const seenSubtasks = new Set();
   let retainerDiscount = 0;
 
+  // Find execution term for Technology cost calculation
+  // Check Relationship duration first, then fall back to Execution variant
+  let executionTermMonths = 1;
+  Object.values(selectedTactics).forEach((entry) => {
+    if (entry?.tactic?.ID === 19 && entry.config?.selectedDuration) {
+      executionTermMonths = entry.config.selectedDuration;
+    }
+  });
+  if (executionTermMonths === 1) {
+    Object.values(selectedTactics).forEach((entry) => {
+      if (entry?.tactic?.Type === "Execution" && entry.tactic.Variants?.length > 0 && entry.config?.selectedVariantName) {
+        const variant = entry.tactic.Variants.find((v) => v.Name === entry.config.selectedVariantName);
+        if (variant?.Duration_Months) executionTermMonths = variant.Duration_Months;
+      }
+    });
+  }
+
   Object.values(selectedTactics).forEach((entry) => {
     if (!entry || !entry.tactic) return;
 
-    const { hours: itemHours, cost: itemCost } = calculateTacticCost(
-      entry.tactic,
-      entry.config,
-    );
+    const tacticResult = calculateTacticCost(entry.tactic, entry.config);
+    let { hours: itemHours, cost: itemCost } = tacticResult;
+
+    // Technology cost = monthly × execution term
+    if (entry.tactic.fixedMonthlyCost) {
+      itemCost = entry.tactic.fixedMonthlyCost * executionTermMonths;
+    }
 
     if (entry.tactic.Type === "Execution") {
       retainerDiscount += itemHours * HOURLY_RATE - itemCost;
@@ -233,9 +285,14 @@ export const computeTotals = (selectedTactics, discountPercentage) => {
     }
 
     const type = entry.tactic.Type;
-    if (!typeTotals[type]) typeTotals[type] = { hours: 0, cost: 0 };
+    if (!typeTotals[type]) typeTotals[type] = { hours: 0, cost: 0, monthlyCost: 0 };
     typeTotals[type].hours += itemHours;
     typeTotals[type].cost += itemCost;
+    if (tacticResult.monthlyCost) {
+      typeTotals[type].monthlyCost += tacticResult.monthlyCost;
+    } else if (entry.tactic.fixedMonthlyCost) {
+      typeTotals[type].monthlyCost += entry.tactic.fixedMonthlyCost;
+    }
 
     totalHoursBeforeAllSavings += itemHours;
     totalCostBeforeAllSavings += itemCost;

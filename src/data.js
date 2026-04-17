@@ -31,16 +31,7 @@ export const data = [
     "Base Hours": (12 + 35 / 60),
     Description:
       "Identify and resolve critical technical issues that might impact website conversion rate, establishing a reliable foundation for ongoing optimisation.",
-    Inclusions: ["3 pages reviewed"],
-    Adjustments: [
-      {
-        Type: "per_unit",
-        Unit: "additional page",
-        Title: "Additional Pages",
-        Hours_Per_Unit: 1,
-        Description: "Adds additional page for review",
-      },
-    ],
+    Adjustments: [],
     "Sub-tasks": [
       { ID: 2.1, Name: "Discovery Document", Hours: 0.42 },
       { ID: 2.2, Name: "Discovery Agenda", Hours: 0.17 },
@@ -65,13 +56,24 @@ export const data = [
     "Base Hours": (11 + 5 / 60),
     Description:
       "Ensure Google Analytics is configured to provide truthful, correct, and reliable data, giving confidence in the insights used for testing and decision-making.",
-    Inclusions: ["eCommerce Events or 3 Lead gen events"],
     Adjustments: [
       {
-        Type: "per_unit",
-        Unit: "additional Lead Gen Event",
-        Hours_Per_Unit: 0.5,
-        Description: "Additional events to review",
+        Type: "fixed_increase",
+        Condition: "shopPaySupport",
+        Hours_Increase: 1,
+        Description: "ShopPay support",
+      },
+      {
+        Type: "fixed_increase",
+        Condition: "dataMismatch",
+        Hours_Increase: 1,
+        Description: "Data Mismatch",
+      },
+      {
+        Type: "fixed_increase",
+        Condition: "additionalTrackingLeadGen",
+        Hours_Increase: 1,
+        Description: "Additional Tracking for Lead Gen",
       },
     ],
     "Sub-tasks": [
@@ -100,22 +102,13 @@ export const data = [
       "Understand the performance of your website while identifying high-value audiences and key fallout areas.",
     Adjustments: [
       {
-        Type: "fixed_increase",
-        Condition: "specificTable",
-        Hours_Increase: 3,
-        Description: "Check to include additional segmented data",
-      },
-      {
-        Type: "fixed_increase",
-        Condition: "leadgenreport",
-        Hours_Increase: 3,
-        Description: "Check if the business is Lead Gen?",
-      },
-      {
-        Type: "fixed_increase",
-        Condition: "hybridwebsite",
-        Hours_Increase: 2,
-        Description: "Check if the website is hybrid",
+        Type: "exclusive_option",
+        Condition: "baselineOption",
+        Options: [
+          { value: "ecommerce", label: "E-commerce", Hours_Increase: 3 },
+          { value: "leadgen", label: "Lead Gen business", Hours_Increase: 3 },
+          { value: "hybrid", label: "Website is hybrid", Hours_Increase: 2 },
+        ],
       },
     ],
     "Sub-tasks": [
@@ -142,7 +135,7 @@ export const data = [
     "Base Hours": 26 + 20 / 60,
     Description:
       "Analyse valuable audiences and critical website funnels to identify the specific stages at which users disengage from their journeys",
-    Inclusions: ["Analysis of two valuable audiences"],
+    Inclusions: ["4 user journeys of 2 valuable audiences"],
     Adjustments: [
       {
         Type: "per_unit",
@@ -266,15 +259,7 @@ export const data = [
     "Base Hours": 18 + 5 / 60,
     Description:
       "Analyze on-page user behaviour in recorded sessions to pinpoint friction points, reveal drop-off patterns, and uncover key factors contributing to low conversion rates, while gaining access to session recordings for direct review.",
-    Inclusions: ["5 pages explored"],
-    Adjustments: [
-      {
-        Type: "per_unit",
-        Unit: "additional page",
-        Hours_Per_Unit: 2,
-        Description: "Adds an additional page explored",
-      },
-    ],
+    Adjustments: [],
     "Sub-tasks": [
       { ID: 10.1, Name: "Discovery Document", Hours: 0.42 },
       { ID: 10.2, Name: "Discovery Agenda", Hours: 0.17 },
@@ -318,18 +303,12 @@ export const data = [
       { ID: 9.15, Name: "Account Management", Hours: 2 },
 
     ],
-    Variants: [
-      {
-        Name: "12 PAX",
-        Hours_Increase: 9,
-        Description: "Adds 9 hours for a study with 12 participants.",
-      },
-      {
-        Name: "24 PAX",
-        Hours_Increase: 19,
-        Description: "Adds 19 hours for a study with 24 participants.",
-      },
+    participantOptions: [
+      { label: "6 participants", value: 6, hoursIncrease: 0 },
+      { label: "12 participants", value: 12, hoursIncrease: 9 },
+      { label: "24 participants", value: 24, hoursIncrease: 19 },
     ],
+    Variants: [],
   },
 
   {
@@ -372,7 +351,17 @@ export const data = [
     "Base Hours": 22 + 35 / 60,
     Description:
       "Analyse and optimise the structure, labeling, and hierarchy of the main and footer navigation to streamline user journeys, reduce friction, guide visitors to key pages more efficiently, and ultimately drive higher conversion rates.",
-    Adjustments: [],
+    Adjustments: [
+      {
+        Type: "exclusive_option",
+        Condition: "pageHierarchy",
+        Options: [
+          { value: "1-50", label: "1–50 pages", Hours_Increase: 0 },
+          { value: "50-99", label: "50–99 pages", Hours_Increase: 0 },
+          { value: "100+", label: "100+ pages", Hours_Increase: 0 },
+        ],
+      },
+    ],
     "Sub-tasks": [
       { ID: 12.1, Name: "Discovery Document", Hours: 0.42 },
       { ID: 12.2, Name: "Discovery Agenda", Hours: 0.17 },
@@ -396,19 +385,13 @@ export const data = [
     "Base Hours": 26.58,
     Description:
       "Analyse your website using the MECLABS heuristic - enriched by years of research - to pinpoint exactly what’s blocking your conversions, and to create strategies to motivate users, incentivise actions, demonstrate value, and mitigate any friction or anxiety that may deter conversions. ",
-    Inclusions: ["Two Personas Analysed", "Two User Journeys Analysed"],
+    Inclusions: ["Two personas analysed"],
     Adjustments: [
       {
         Type: "per_unit",
         Unit: "additional persona",
         Hours_Per_Unit: 1,
-        Description: "Add additional personas to analyse",
-      },
-      {
-        Type: "per_unit",
-        Unit: "additional user journey",
-        Hours_Per_Unit: 1,
-        Description: "Add additional user journey to analyse",
+        Description: "Two personas analysed",
       },
     ],
     "Sub-tasks": [
@@ -482,10 +465,38 @@ export const data = [
     displayName: "Execution",
     "Base Hours": 0,
     Description:
-      "Ongoing CRO support: consistent ideation, testing, and analysis for sustainable growth based on commitment.",
+      "End to End CRO Execution with involvement from all departments",
+    departments: [
+      { name: "Strategy", icon: "/icons/execution/image 69.svg" },
+      { name: "Data", icon: "/icons/execution/image 51.svg" },
+      { name: "Customer experience", icon: "/icons/execution/image 58.svg" },
+      { name: "Design", icon: "/icons/execution/image 54.svg" },
+      { name: "Development", icon: "/icons/execution/image 67.svg" },
+      { name: "Project management", icon: "/icons/execution/image 51-1.svg" },
+      { name: "Technology", icon: "/icons/execution/image 50.svg" },
+    ],
     Adjustments: [],
     "Sub-tasks": [],
     Variants: [
+      {
+        Name: "3 Months @ 40 hrs/month",
+        Monthly_Hours: 40,
+        Duration_Months: 3,
+        Description: "3-month retainer, 40 hours per month",
+      },
+      {
+        Name: "3 Months @ 60 hrs/month",
+        Monthly_Hours: 60,
+        Duration_Months: 3,
+        Description: "3-month retainer, 60 hours per month",
+      },
+      {
+        Name: "3 Months @ 80 hrs/month",
+        Monthly_Hours: 80,
+        Duration_Months: 3,
+        Description: "3-month retainer, 80 hours per month",
+      },
+
       {
         Name: "6 Months @ 40 hrs/month",
         Monthly_Hours: 40,
@@ -548,9 +559,10 @@ export const data = [
     category: "Experimentation",
     Name: "RELATIONSHIP",
     displayName: "Relationship",
-    "Base Hours": 10,
+    "Base Hours": 0,
     Description:
-      "Build and maintain strong client relationships through regular check-ins, progress reviews, and strategic alignment sessions.",
+      "Select the duration of your execution program. Longer commitments unlock greater retainer discounts.",
+    durationOptions: [3, 6, 12, 24],
     Adjustments: [],
     "Sub-tasks": [],
   },
@@ -561,9 +573,13 @@ export const data = [
     Name: "OPTIMISATION SOFTWARE",
     displayName: "Optimisation software",
     "Base Hours": 0,
-    fixedMonthlyCost: 500,
+    fixedMonthlyCost: 0,
     Description:
       "AB testing and optimisation software tools for running experiments and tracking results.",
+    softwareOptions: [
+      { label: "Bring your own", value: "byo", monthlyCost: 0 },
+      { label: "Varify", value: "varify", monthlyCost: 400 },
+    ],
     Adjustments: [],
     "Sub-tasks": [],
   },
